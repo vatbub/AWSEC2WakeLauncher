@@ -1,4 +1,4 @@
-package com.github.vatbub.awsec2wakelauncher;
+package com.github.vatbub.awsec2wakelauncher.server;
 
 /*-
  * #%L
@@ -21,30 +21,20 @@ package com.github.vatbub.awsec2wakelauncher;
  */
 
 
-import com.github.vatbub.common.core.StringCommon;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.net.URISyntaxException;
 
-public class Main extends HttpServlet{
-    public void doGet(HttpServletRequest request,
-                      HttpServletResponse response)
-            throws IOException, ServletException {
+public class Api extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        super.doGet(req, resp);
+    }
 
-        response.setContentType("text/html");
-        PrintWriter writer = response.getWriter();
-
-        try {
-            String jsp = StringCommon.fromFile(new File(Main.class.getResource("/src/main/webapp/index.jsp").toURI()));
-            writer.write(jsp);
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        super.doPost(req, resp);
     }
 }
