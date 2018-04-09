@@ -56,7 +56,7 @@ public class Api extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         FOKLogger.info(getClass().getName(), "Received POST request, parsing...");
         StringWriter stringWriter = new StringWriter();
         IOUtils.copy(req.getInputStream(), stringWriter, Charset.forName("UTF-8"));
