@@ -23,7 +23,7 @@ package com.github.vatbub.awsec2wakelauncher.common.internal;
 
 import com.github.vatbub.common.updater.Version;
 
-public abstract class Request extends Interaction {
+public abstract class Request extends ServerInteraction {
     public Request(String instanceId) {
         super(instanceId);
     }
@@ -32,7 +32,9 @@ public abstract class Request extends Interaction {
         super(instanceId, protocolVersion);
     }
 
-    public abstract String getRequestType();
+    public abstract RequestType getRequestType();
 
-
+    public enum RequestType{
+        WakeRequest, ShutdownRequest
+    }
 }

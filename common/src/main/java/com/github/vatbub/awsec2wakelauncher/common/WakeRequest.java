@@ -36,7 +36,7 @@ public class WakeRequest extends Request {
     }
 
     @Override
-    public String getRequestType() {
-        return requestType;
+    public RequestType getRequestType() {
+        return RequestType.WakeRequest;
     }
 }

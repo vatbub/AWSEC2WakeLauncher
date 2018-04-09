@@ -24,14 +24,12 @@ package com.github.vatbub.awsec2wakelauncher.common;
 import com.github.vatbub.awsec2wakelauncher.common.internal.Request;
 
 public class ShutdownRequest extends Request {
-    private String requestType = "ShutdownRequest";
-
     public ShutdownRequest(String instanceId) {
         super(instanceId);
     }
 
     @Override
-    public String getRequestType() {
-        return requestType;
+    public RequestType getRequestType() {
+        return RequestType.ShutdownRequest;
     }
 }

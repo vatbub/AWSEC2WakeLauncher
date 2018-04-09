@@ -23,15 +23,15 @@ package com.github.vatbub.awsec2wakelauncher.common.internal;
 
 import com.github.vatbub.common.updater.Version;
 
-public abstract class Interaction {
+public abstract class ServerInteraction {
     private Version protocolVersion;
     private String instanceId;
 
-    public Interaction(String instanceId){
+    public ServerInteraction(String instanceId){
         this(instanceId, Constants.DEFAULT_PROTOCOL_VERSION);
     }
 
-    public Interaction(String instanceId, Version protocolVersion) {
+    public ServerInteraction(String instanceId, Version protocolVersion) {
         setProtocolVersion(protocolVersion);
         setInstanceId(instanceId);
     }

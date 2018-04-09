@@ -23,7 +23,7 @@ package com.github.vatbub.awsec2wakelauncher.common.internal;
 
 import com.github.vatbub.common.updater.Version;
 
-public abstract class Response extends Interaction{
+public abstract class Response extends ServerInteraction {
     public Response(String instanceId) {
         super(instanceId);
     }

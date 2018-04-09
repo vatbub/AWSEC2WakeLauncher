@@ -25,6 +25,7 @@ import com.github.vatbub.awsec2wakelauncher.common.ShutdownRequest;
 import com.github.vatbub.awsec2wakelauncher.common.WakeRequest;
 import com.github.vatbub.awsec2wakelauncher.common.WakeResponse;
 import com.github.vatbub.awsec2wakelauncher.common.internal.Constants;
+import com.github.vatbub.awsec2wakelauncher.common.internal.Request;
 import com.github.vatbub.common.core.Common;
 import com.github.vatbub.common.core.logging.FOKLogger;
 import com.google.gson.Gson;
@@ -39,6 +40,8 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Api extends HttpServlet {
     static {
@@ -46,9 +49,9 @@ public class Api extends HttpServlet {
             Common.getInstance().setAppName(Constants.SERVER_APP_NAME);
     }
 
+    private Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private WakeRequest sampleWakeRequest = new WakeRequest("");
     private ShutdownRequest sampleShutdownRequest = new ShutdownRequest("");
-    private Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -64,21 +67,40 @@ public class Api extends HttpServlet {
 
         FOKLogger.fine(getClass().getName(), "Request body is: \n" + requestBody);
 
-        if (requestBody.contains(sampleWakeRequest.getRequestType())) {
-            FOKLogger.fine(getClass().getName(), "Request type is: " + sampleWakeRequest.getRequestType());
-            WakeRequest wakeRequest = gson.fromJson(requestBody, WakeRequest.class);
+        Pattern requestTypePattern = Pattern.compile("\"requestType\": \".*\"");
+        Matcher matcher = requestTypePattern.matcher(requestBody);
+        if (!matcher.find()) {
+            FOKLogger.warning(getClass().getName(), "Request did not specify a request type");
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Request type missing");
+            return;
+        }
 
-            // handle the wake request
+        // request contains request type
+        String requestTypeTemp = matcher.group(0);
+        requestTypeTemp = requestTypeTemp.replace("\"", "");
+        requestTypeTemp = requestTypeTemp.replace("requestType: ", "");
 
-            WakeResponse wakeResponse = new WakeResponse(wakeRequest.getInstanceId());
-            StringReader stringReader = new StringReader(gson.toJson(wakeResponse, WakeResponse.class));
-            IOUtils.copy(stringReader, resp.getOutputStream(), Charset.forName("UTF-8"));
-            resp.setStatus(HttpServletResponse.SC_OK);
-        } else if (requestBody.contains(sampleShutdownRequest.getRequestType())) {
-            FOKLogger.fine(getClass().getName(), "Request type is: " + sampleShutdownRequest.getRequestType());
-        } else {
-            FOKLogger.info(getClass().getName(), "Request had illegal request type, sending error...");
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Illegal request type");
+        Request.RequestType requestType = Request.RequestType.valueOf(requestTypeTemp);
+
+        FOKLogger.fine(getClass().getName(), "Request type is: " + requestType);
+
+        switch (requestType) {
+            case WakeRequest:
+                WakeRequest wakeRequest = gson.fromJson(requestBody, WakeRequest.class);
+
+                // handle the wake request
+
+                WakeResponse wakeResponse = new WakeResponse(wakeRequest.getInstanceId());
+                wakeResponse.setInstanceState(WakeResponse.InstanceState.RUNNING);
+                StringReader stringReader = new StringReader(gson.toJson(wakeResponse, WakeResponse.class));
+                IOUtils.copy(stringReader, resp.getOutputStream(), Charset.forName("UTF-8"));
+                resp.setStatus(HttpServletResponse.SC_OK);
+                break;
+            case ShutdownRequest:
+                break;
+            default:
+                FOKLogger.info(getClass().getName(), "Request had illegal request type, sending error...");
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Illegal request type");
         }
     }
 }
