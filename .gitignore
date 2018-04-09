@@ -11,3 +11,4 @@ tomcat.8080/
 .idea/modules.xml
 .idea/vcs.xml
 server/awsec2wakelauncher.server.iml
+**/target
