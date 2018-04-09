@@ -25,4 +25,5 @@ import com.github.vatbub.common.updater.Version;
 
 public class Constants {
     public static final Version DEFAULT_PROTOCOL_VERSION = new Version("1.0");
+    public static final String SERVER_APP_NAME = "aws2ec2WakeLauncher.server";
 }
