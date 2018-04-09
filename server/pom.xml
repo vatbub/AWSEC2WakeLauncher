@@ -11,7 +11,18 @@
             <groupId>com.github.vatbub</groupId>
             <artifactId>awsec2wakelauncher.common</artifactId>
             <version>1.0-SNAPSHOT</version>
-            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-core</artifactId>
+            <version>8.5.30</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.vatbub</groupId>
+            <artifactId>awsec2wakelauncher.applicationclient</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -24,7 +35,6 @@
     <artifactId>awsec2wakelauncher.server</artifactId>
     <packaging>war</packaging>
     <name>webappRunnerSample Maven Webapp</name>
-
 
     <build>
         <finalName>${project.artifactId}</finalName>
