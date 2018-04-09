@@ -12,3 +12,15 @@ tomcat.8080/
 .idea/vcs.xml
 server/awsec2wakelauncher.server.iml
 **/target
+
+\.idea/dictionaries/frede\.xml
+
+\.idea/inspectionProfiles/Project_Default\.xml
+
+\.idea/uiDesigner\.xml
+
+applicationclient/applicationclient\.iml
+
+applicationclient/awsec2wakelauncher\.client\.iml
+
+common/common\.iml
