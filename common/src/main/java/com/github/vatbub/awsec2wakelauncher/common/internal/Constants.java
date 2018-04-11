@@ -26,4 +26,8 @@ import com.github.vatbub.common.updater.Version;
 public class Constants {
     public static final Version DEFAULT_PROTOCOL_VERSION = new Version("1.0");
     public static final String SERVER_APP_NAME = "aws2ec2WakeLauncher.server";
+
+    public static final String AWS_KEY_ID_ENV_NAME = "aws2ec2WakeLauncher.aws.keyId";
+    public static final String AWS_SECRET_ENV_NAME = "aws2ec2WakeLauncher.aws.secret";
+    public static final String AWS_REGION_ENV_NAME = "aws2ec2WakeLauncher.aws.region";
 }

@@ -22,6 +22,7 @@ package com.github.vatbub.awsec2wakelauncher.server;
 
 
 import com.github.vatbub.awsec2wakelauncher.common.ShutdownRequest;
+import com.github.vatbub.awsec2wakelauncher.common.UseMockInstanceManagerRequest;
 import com.github.vatbub.awsec2wakelauncher.common.WakeRequest;
 import com.github.vatbub.awsec2wakelauncher.common.WakeResponse;
 import com.github.vatbub.awsec2wakelauncher.common.internal.Constants;
@@ -44,14 +45,27 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Api extends HttpServlet {
-    static {
-        if (Common.getInstance().getAppName() == null)
-            Common.getInstance().setAppName(Constants.SERVER_APP_NAME);
-    }
-
+    private AwsInstanceManager awsInstanceManager;
     private Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private WakeRequest sampleWakeRequest = new WakeRequest("");
     private ShutdownRequest sampleShutdownRequest = new ShutdownRequest("");
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+
+        if (Common.getInstance().getAppName() == null)
+            Common.getInstance().setAppName(Constants.SERVER_APP_NAME);
+
+        setAwsInstanceManager(createInstanceManager(false, 0));
+    }
+
+    private AwsInstanceManager createInstanceManager(boolean mock, int secondsToStartInstance) {
+        if (mock)
+            return new MockAwsInstanceManager(System.getenv(Constants.AWS_REGION_ENV_NAME), System.getenv(Constants.AWS_KEY_ID_ENV_NAME), System.getenv(Constants.AWS_SECRET_ENV_NAME), secondsToStartInstance);
+        else
+            return new AwsInstanceManager(System.getenv(Constants.AWS_REGION_ENV_NAME), System.getenv(Constants.AWS_KEY_ID_ENV_NAME), System.getenv(Constants.AWS_SECRET_ENV_NAME));
+    }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -98,9 +112,26 @@ public class Api extends HttpServlet {
                 break;
             case ShutdownRequest:
                 break;
+            case UseMockManagerRequest:
+                UseMockInstanceManagerRequest useMockInstanceManagerRequest = gson.fromJson(requestBody, UseMockInstanceManagerRequest.class);
+                setAwsInstanceManager(createInstanceManager(useMockInstanceManagerRequest.isUseMockManager(), useMockInstanceManagerRequest.getSecondsToStartInstance()));
+                break;
             default:
                 FOKLogger.info(getClass().getName(), "Request had illegal request type, sending error...");
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Illegal request type");
         }
+    }
+
+    public AwsInstanceManager getAwsInstanceManager() {
+        return awsInstanceManager;
+    }
+
+    public void setAwsInstanceManager(AwsInstanceManager awsInstanceManager) {
+        this.awsInstanceManager = awsInstanceManager;
+
+        if (awsInstanceManager instanceof MockAwsInstanceManager)
+            FOKLogger.info(getClass().getName(), "Now using mock aws instance manager...");
+        else
+            FOKLogger.info(getClass().getName(), "Now using real aws instance manager...");
     }
 }

@@ -35,6 +35,6 @@ public abstract class Request extends ServerInteraction {
     public abstract RequestType getRequestType();
 
     public enum RequestType{
-        WakeRequest, ShutdownRequest
+        WakeRequest, ShutdownRequest, UseMockManagerRequest
     }
 }
