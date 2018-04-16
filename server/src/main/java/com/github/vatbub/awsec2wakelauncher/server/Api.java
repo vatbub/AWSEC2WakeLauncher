@@ -22,7 +22,6 @@ package com.github.vatbub.awsec2wakelauncher.server;
 
 
 import com.github.vatbub.awsec2wakelauncher.common.ShutdownRequest;
-import com.github.vatbub.awsec2wakelauncher.common.UseMockInstanceManagerRequest;
 import com.github.vatbub.awsec2wakelauncher.common.WakeRequest;
 import com.github.vatbub.awsec2wakelauncher.common.WakeResponse;
 import com.github.vatbub.awsec2wakelauncher.common.internal.Constants;
@@ -57,14 +56,7 @@ public class Api extends HttpServlet {
         if (Common.getInstance().getAppName() == null)
             Common.getInstance().setAppName(Constants.SERVER_APP_NAME);
 
-        setAwsInstanceManager(createInstanceManager(false, 0));
-    }
-
-    private AwsInstanceManager createInstanceManager(boolean mock, int secondsToStartInstance) {
-        if (mock)
-            return new MockAwsInstanceManager(System.getenv(Constants.AWS_REGION_ENV_NAME), System.getenv(Constants.AWS_KEY_ID_ENV_NAME), System.getenv(Constants.AWS_SECRET_ENV_NAME), secondsToStartInstance);
-        else
-            return new AwsInstanceManager(System.getenv(Constants.AWS_REGION_ENV_NAME), System.getenv(Constants.AWS_KEY_ID_ENV_NAME), System.getenv(Constants.AWS_SECRET_ENV_NAME));
+        setAwsInstanceManager(new AwsInstanceManager(System.getenv(Constants.AWS_REGION_ENV_NAME), System.getenv(Constants.AWS_KEY_ID_ENV_NAME), System.getenv(Constants.AWS_SECRET_ENV_NAME)));
     }
 
     @Override
@@ -111,10 +103,6 @@ public class Api extends HttpServlet {
                 resp.setStatus(HttpServletResponse.SC_OK);
                 break;
             case ShutdownRequest:
-                break;
-            case UseMockManagerRequest:
-                UseMockInstanceManagerRequest useMockInstanceManagerRequest = gson.fromJson(requestBody, UseMockInstanceManagerRequest.class);
-                setAwsInstanceManager(createInstanceManager(useMockInstanceManagerRequest.isUseMockManager(), useMockInstanceManagerRequest.getSecondsToStartInstance()));
                 break;
             default:
                 FOKLogger.info(getClass().getName(), "Request had illegal request type, sending error...");
