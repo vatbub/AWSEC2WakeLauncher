@@ -35,10 +35,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class Client {
     private Gson gson;
     private URL serverBaseUrl;
+    private String apiSuffix;
 
     public Client(URL serverBaseUrl) {
+        this(serverBaseUrl, "api");
+    }
+
+    public Client(URL serverBaseUrl, String apiSuffix) {
         setServerBaseUrl(serverBaseUrl);
         gson = new GsonBuilder().setPrettyPrinting().create();
+        setApiSuffix(apiSuffix);
     }
 
     public void launchAndWaitForInstance(String instanceId) throws Exception {
@@ -69,7 +75,7 @@ public class Client {
                 boolean ready = false;
 
                 while (!ready) {
-                    HttpRequest<String> httpRequest = HttpRequestBuilder.createPost(new URL(getServerBaseUrl(), "api").toURI(), String.class)
+                    HttpRequest<String> httpRequest = HttpRequestBuilder.createPost(new URL(getServerBaseUrl(), getApiSuffix()).toURI(), String.class)
                             .responseDeserializer(ResponseDeserializer.ignorableDeserializer()).build();
                     String responseBody = httpRequest.executeWithBody(json).get();
 
@@ -94,6 +100,14 @@ public class Client {
 
     public void setServerBaseUrl(URL serverBaseUrl) {
         this.serverBaseUrl = serverBaseUrl;
+    }
+
+    public String getApiSuffix() {
+        return apiSuffix;
+    }
+
+    public void setApiSuffix(String apiSuffix) {
+        this.apiSuffix = apiSuffix;
     }
 
     public interface OnInstanceReadyRunnable {

@@ -24,3 +24,5 @@ applicationclient/applicationclient\.iml
 applicationclient/awsec2wakelauncher\.client\.iml
 
 common/common\.iml
+
+**/webapps/**

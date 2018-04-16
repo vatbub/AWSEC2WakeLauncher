@@ -22,15 +22,18 @@ package com.github.vatbub.awsec2wakelauncher.server;
 
 
 import com.github.vatbub.awsec2wakelauncher.applicationclient.Client;
+import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.commons.io.FileUtils;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -42,6 +45,10 @@ public class ApiTest {
     private static Tomcat tomcat;
     private static Path destinationPath;
     private static Path baseDir;
+    private static final String apiSuffix = "api";
+    private static Context context;
+    private static Api api;
+    private Client client;
 
     @BeforeClass
     public static void startServer() throws ServletException, LifecycleException, IOException {
@@ -71,7 +78,12 @@ public class ApiTest {
         System.out.println(relativePath);
 
         /* There needs to be a symlink to the current dir named 'webapps' */
-        tomcat.addWebapp("", relativePath.toString());
+        context = tomcat.addContext("", relativePath.toString());
+        api = new Api();
+        api.init();
+        // context.getServletContext().addServlet("ApiServlet", api);
+        tomcat.addServlet("", "ApiServlet", api);
+        context.addServletMappingDecoded("/" + apiSuffix, "ApiServlet");
         tomcat.init();
         tomcat.start();
     }
@@ -83,9 +95,13 @@ public class ApiTest {
         FileUtils.deleteDirectory(baseDir.resolve("work").toFile());
     }
 
+    @Before
+    public void setClientUp() throws MalformedURLException {
+        client = new Client(new URL("http", "localhost", TOMCAT_PORT, ""), apiSuffix);
+    }
+
     @Test
     public void wakeRequestTest() throws Exception {
-        Client client = new Client(new URL("http", "localhost", TOMCAT_PORT, ""));
         client.launchAndWaitForInstance("i-765876");
     }
 }
