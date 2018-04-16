@@ -9,9 +9,9 @@ package com.github.vatbub.awsec2wakelauncher.applicationclient;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -52,7 +52,7 @@ public class Client {
         final Exception[] e = new Exception[1];
 
         launchInstance(instanceId, (exception) -> {
-            e[0] =exception;
+            e[0] = exception;
             ready.set(true);
         });
 
@@ -60,7 +60,7 @@ public class Client {
             System.out.print("");
         }
 
-        if (e[0] !=null)
+        if (e[0] != null)
             throw e[0];
     }
 
@@ -80,8 +80,8 @@ public class Client {
                     String responseBody = httpRequest.executeWithBody(json).get();
 
                     WakeResponse wakeResponse = gson.fromJson(responseBody, WakeResponse.class);
-                    if (wakeResponse.getInstanceState()==WakeResponse.InstanceState.RUNNING)
-                        ready=true;
+                    if (wakeResponse.getInstanceState() == 16)
+                        ready = true;
                 }
 
             } catch (Exception e) {

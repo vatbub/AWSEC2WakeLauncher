@@ -65,15 +65,14 @@ public class AwsInstanceManager {
         this.ec2Client = ec2Client;
     }
 
-    public boolean isInstanceRunning(String instanceId) {
+    public InstanceState getInstanceState(String instanceId) {
         DescribeInstancesRequest describeInstancesRequest = new DescribeInstancesRequest();
         List<String> instanceIds = new ArrayList<>(1);
         instanceIds.add(instanceId);
         describeInstancesRequest.setInstanceIds(instanceIds);
         DescribeInstancesResult describeInstancesResult = getEc2Client().describeInstances(describeInstancesRequest);
         Instance instance = describeInstancesResult.getReservations().get(0).getInstances().get(0);
-
-        return instance.getState().getCode() == 16;
+        return instance.getState();
     }
 
     public void startInstance(String instanceId) {

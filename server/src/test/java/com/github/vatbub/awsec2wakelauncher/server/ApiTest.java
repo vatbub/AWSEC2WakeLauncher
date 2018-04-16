@@ -26,12 +26,8 @@ import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.commons.io.FileUtils;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 
-import javax.servlet.ServletException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -42,16 +38,16 @@ import java.util.List;
 
 public class ApiTest {
     private static final int TOMCAT_PORT = 9999;
+    private static final String apiSuffix = "api";
     private static Tomcat tomcat;
     private static Path destinationPath;
     private static Path baseDir;
-    private static final String apiSuffix = "api";
     private static Context context;
     private static Api api;
     private Client client;
 
     @BeforeClass
-    public static void startServer() throws ServletException, LifecycleException, IOException {
+    public static void startServer() throws LifecycleException, IOException {
         List<String> relativeFolders = new ArrayList<>();
         relativeFolders.add("src");
         relativeFolders.add("main");
@@ -80,7 +76,6 @@ public class ApiTest {
         /* There needs to be a symlink to the current dir named 'webapps' */
         context = tomcat.addContext("", relativePath.toString());
         api = new Api();
-        api.init();
         // context.getServletContext().addServlet("ApiServlet", api);
         tomcat.addServlet("", "ApiServlet", api);
         context.addServletMappingDecoded("/" + apiSuffix, "ApiServlet");
@@ -100,8 +95,24 @@ public class ApiTest {
         client = new Client(new URL("http", "localhost", TOMCAT_PORT, ""), apiSuffix);
     }
 
+    private void useMockInstanceManager() {
+        if (api.getAwsInstanceManager() instanceof MockAwsInstanceManager)
+            return; // already using mock manager
+
+        api.setAwsInstanceManager(new MockAwsInstanceManager(10));
+    }
+
+    private void resetInstanecManager() {
+        api.resetInstanceManager();
+    }
+
     @Test
     public void wakeRequestTest() throws Exception {
-        client.launchAndWaitForInstance("i-765876");
+        useMockInstanceManager();
+
+        String instanceId = "i-765876";
+
+        client.launchAndWaitForInstance(instanceId);
+        Assert.assertEquals(16, api.getAwsInstanceManager().getInstanceState(instanceId).getCode().intValue());
     }
 }

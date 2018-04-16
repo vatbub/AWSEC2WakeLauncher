@@ -25,7 +25,7 @@ import com.github.vatbub.awsec2wakelauncher.common.internal.Response;
 import com.github.vatbub.common.updater.Version;
 
 public class WakeResponse extends Response {
-    private InstanceState instanceState;
+    private int instanceState;
 
     public WakeResponse(String instanceId) {
         super(instanceId);
@@ -35,15 +35,11 @@ public class WakeResponse extends Response {
         super(instanceId, protocolVersion);
     }
 
-    public InstanceState getInstanceState() {
+    public int getInstanceState() {
         return instanceState;
     }
 
-    public void setInstanceState(InstanceState instanceState) {
+    public void setInstanceState(int instanceState) {
         this.instanceState = instanceState;
-    }
-
-    public enum InstanceState{
-        RUNNING, NOT_RUNNING
     }
 }
