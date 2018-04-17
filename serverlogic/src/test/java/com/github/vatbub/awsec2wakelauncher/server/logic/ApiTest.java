@@ -21,6 +21,9 @@ package com.github.vatbub.awsec2wakelauncher.server.logic;
  */
 
 
+import com.amazonaws.services.ec2.model.InstanceState;
+import com.github.vatbub.awsec2wakelauncher.common.ShutdownRequest;
+import com.github.vatbub.awsec2wakelauncher.common.ShutdownResponse;
 import com.github.vatbub.awsec2wakelauncher.common.WakeRequest;
 import com.github.vatbub.awsec2wakelauncher.common.WakeResponse;
 import com.github.vatbub.awsec2wakelauncher.common.internal.ServerInteraction;
@@ -51,6 +54,9 @@ public class ApiTest extends TomcatTest {
     private static final String apiSuffix = "api";
     private static Gson gson;
     private static Api api;
+    private static MockAwsInstanceManager mockAwsInstanceManager;
+
+    //     client = new Client(new URL("http", "localhost", TOMCAT_PORT, ""), apiSuffix);
 
     @BeforeClass
     public static void startServer() throws LifecycleException, IOException {
@@ -59,13 +65,12 @@ public class ApiTest extends TomcatTest {
         gson = new GsonBuilder().setPrettyPrinting().create();
     }
 
-    //     client = new Client(new URL("http", "localhost", TOMCAT_PORT, ""), apiSuffix);
-
-    private void useMockInstanceManager() {
+    private static void useMockInstanceManager() {
         if (api.getAwsInstanceManager() instanceof MockAwsInstanceManager)
             return; // already using mock manager
 
-        api.setAwsInstanceManager(new MockAwsInstanceManager(10));
+        mockAwsInstanceManager = new MockAwsInstanceManager(10);
+        api.setAwsInstanceManager(mockAwsInstanceManager);
     }
 
     @Test
@@ -84,14 +89,50 @@ public class ApiTest extends TomcatTest {
 
             switch (loopCounter) {
                 case 0:
-                    Assert.assertEquals(80, wakeResponse.getInstanceState());
+                    Assert.assertEquals(80, wakeResponse.getPreviousInstanceState());
+                    Assert.assertEquals(0, wakeResponse.getNewInstanceState());
                     break;
                 default:
-                    Assert.assertThat(wakeResponse.getInstanceState(), Matchers.anyOf(Matchers.equalTo(0), Matchers.equalTo(16)));
+                    Assert.assertThat(wakeResponse.getPreviousInstanceState(), Matchers.anyOf(Matchers.equalTo(0), Matchers.equalTo(16)));
+                    Assert.assertThat(wakeResponse.getNewInstanceState(), Matchers.anyOf(Matchers.equalTo(0), Matchers.equalTo(16)));
             }
 
             loopCounter++;
-            if (wakeResponse.getInstanceState() == 16)
+            if (wakeResponse.getNewInstanceState() == 16)
+                break;
+        }
+    }
+
+    @Test
+    public void shutdownRequestTest() throws Exception {
+        useMockInstanceManager();
+
+        String instanceId = "i-765876";
+
+        // pretend the instance was already started
+        mockAwsInstanceManager.getMockInstanceStates().put(instanceId, new InstanceState().withCode(16));
+
+        ShutdownRequest shutdownRequest = new ShutdownRequest(instanceId);
+        String json = gson.toJson(shutdownRequest, ShutdownRequest.class);
+
+        int loopCounter = 0;
+
+        while (true) {
+            String responseBody = doRequest(json);
+            ShutdownResponse wakeResponse = gson.fromJson(responseBody, ShutdownResponse.class);
+
+            switch (loopCounter) {
+                case 0:
+                    Assert.assertEquals(16, wakeResponse.getPreviousInstanceState());
+                    Assert.assertEquals(64, wakeResponse.getNewInstanceState());
+                    break;
+                default:
+                    Assert.assertThat(wakeResponse.getPreviousInstanceState(), Matchers.anyOf(Matchers.equalTo(64), Matchers.equalTo(80)));
+                    Assert.assertThat(wakeResponse.getNewInstanceState(), Matchers.anyOf(Matchers.equalTo(64), Matchers.equalTo(80)));
+            }
+
+            loopCounter++;
+            if (wakeResponse.getNewInstanceState() == 80)
                 break;
         }
     }

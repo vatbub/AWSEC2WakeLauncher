@@ -80,7 +80,7 @@ public class Client {
                     String responseBody = httpRequest.executeWithBody(json).get();
 
                     WakeResponse wakeResponse = gson.fromJson(responseBody, WakeResponse.class);
-                    if (wakeResponse.getInstanceState() == 16)
+                    if (wakeResponse.getPreviousInstanceState() == 16)
                         ready = true;
                 }
 

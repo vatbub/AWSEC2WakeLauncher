@@ -31,6 +31,7 @@ import java.util.Map;
 public class MockAwsInstanceManager extends AwsInstanceManager {
     private final Map<String, InstanceState> mockInstanceStates = new HashMap<>();
     private final Map<String, InstanceLifecycleThread> instanceTransitions = new HashMap<>();
+    private boolean waitForInstanceStateUpdate;
     private int durationOfInstanceTransitionsInSeconds;
 
     public MockAwsInstanceManager(int durationOfInstanceTransitionsInSeconds) {
@@ -40,6 +41,9 @@ public class MockAwsInstanceManager extends AwsInstanceManager {
 
     @Override
     public InstanceState getInstanceState(String instanceId) {
+        while (waitForInstanceStateUpdate)
+            FOKLogger.fine(getClass().getName(), "Waiting for an instance state update...");
+
         if (getMockInstanceStates().containsKey(instanceId))
             return getMockInstanceStates().get(instanceId);
 
@@ -53,6 +57,7 @@ public class MockAwsInstanceManager extends AwsInstanceManager {
 
         StartInstanceThread startInstanceThread = new StartInstanceThread(instanceId);
         instanceTransitions.put(instanceId, startInstanceThread);
+        waitForInstanceStateUpdate = true;
         startInstanceThread.start();
     }
 
@@ -63,6 +68,7 @@ public class MockAwsInstanceManager extends AwsInstanceManager {
 
         StopInstanceThread stopInstanceThread = new StopInstanceThread(instanceId);
         instanceTransitions.put(instanceId, stopInstanceThread);
+        waitForInstanceStateUpdate = true;
         stopInstanceThread.start();
     }
 
@@ -139,6 +145,7 @@ public class MockAwsInstanceManager extends AwsInstanceManager {
         @Override
         public void run() {
             updateInstanceState(0);
+            waitForInstanceStateUpdate = false;
 
             while (!isFinish() && getStartTime() + getDurationOfInstanceTransitionsInSeconds() >= getUnixTime()) {
                 FOKLogger.fine(getClass().getName(), "Waiting for mock instance to boot...");
@@ -159,6 +166,7 @@ public class MockAwsInstanceManager extends AwsInstanceManager {
         @Override
         public void run() {
             updateInstanceState(64);
+            waitForInstanceStateUpdate = false;
 
             while (!isFinish() && getStartTime() + getDurationOfInstanceTransitionsInSeconds() >= getUnixTime()) {
                 FOKLogger.fine(getClass().getName(), "Waiting for mock instance to stop...");

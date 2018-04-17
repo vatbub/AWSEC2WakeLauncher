@@ -22,6 +22,8 @@ package com.github.vatbub.awsec2wakelauncher.server.logic;
 
 
 import com.amazonaws.services.ec2.model.InstanceState;
+import com.github.vatbub.awsec2wakelauncher.common.ShutdownRequest;
+import com.github.vatbub.awsec2wakelauncher.common.ShutdownResponse;
 import com.github.vatbub.awsec2wakelauncher.common.WakeRequest;
 import com.github.vatbub.awsec2wakelauncher.common.WakeResponse;
 import com.github.vatbub.awsec2wakelauncher.common.internal.AwsInstanceManager;
@@ -98,39 +100,48 @@ public class Api extends HttpServlet {
 
         FOKLogger.fine(getClass().getName(), "Request type is: " + requestType);
 
+        String responseJson;
+
         switch (requestType) {
             case WAKE_REQUEST:
                 WakeRequest wakeRequest = gson.fromJson(requestBody, WakeRequest.class);
                 WakeResponse wakeResponse = new WakeResponse(wakeRequest.getInstanceId());
                 InstanceState instanceState = getAwsInstanceManager().getInstanceState(wakeRequest.getInstanceId());
 
-                wakeResponse.setInstanceState(instanceState.getCode());
-
-                switch (instanceState.getCode()) {
-                    case 0: // pending
-                    case 16: // running
-                    case 32: // shutting-down
-                    case 48: // terminated
-                    case 64: // stopping
-                        // in any of the above cases, we
-                        break;
-                    case 80: // stopped
-                }
+                wakeResponse.setPreviousInstanceState(instanceState.getCode());
 
                 if (instanceState.getCode() == 80)
                     // only start the instance when it's stopped (cannot start pending, running, stopping or terminated instances.
                     getAwsInstanceManager().startInstance(wakeRequest.getInstanceId());
 
-                StringReader stringReader = new StringReader(gson.toJson(wakeResponse, WakeResponse.class));
-                IOUtils.copy(stringReader, resp.getOutputStream(), Charset.forName("UTF-8"));
-                resp.setStatus(HttpServletResponse.SC_OK);
+                wakeResponse.setNewInstanceState(getAwsInstanceManager().getInstanceState(wakeRequest.getInstanceId()).getCode());
+
+                responseJson = gson.toJson(wakeResponse, WakeResponse.class);
                 break;
             case SHUTDOWN_REQUEST:
+                ShutdownRequest shutdownRequest = gson.fromJson(requestBody, ShutdownRequest.class);
+                ShutdownResponse shutdownResponse = new ShutdownResponse(shutdownRequest.getInstanceId());
+                instanceState = getAwsInstanceManager().getInstanceState(shutdownRequest.getInstanceId());
+
+                shutdownResponse.setPreviousInstanceState(instanceState.getCode());
+
+                if (instanceState.getCode() == 16)
+                    // only stop the instance when it's running (cannot stop pending, stopping or terminated instances.
+                    getAwsInstanceManager().stopInstance(shutdownRequest.getInstanceId());
+
+                shutdownResponse.setNewInstanceState(getAwsInstanceManager().getInstanceState(shutdownRequest.getInstanceId()).getCode());
+
+                responseJson = gson.toJson(shutdownResponse, ShutdownResponse.class);
                 break;
             default:
                 FOKLogger.info(getClass().getName(), "Internal server error: Illegal enum value");
                 resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Illegal enum value");
+                return;
         }
+
+        IOUtils.copy(new StringReader(responseJson), resp.getOutputStream(), Charset.forName("UTF-8"));
+        resp.setContentType("application/json");
+        resp.setStatus(HttpServletResponse.SC_OK);
     }
 
     public AwsInstanceManager getAwsInstanceManager() {
