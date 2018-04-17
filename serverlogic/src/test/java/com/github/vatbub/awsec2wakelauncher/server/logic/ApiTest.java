@@ -1,4 +1,4 @@
-package com.github.vatbub.awsec2wakelauncher.server;
+package com.github.vatbub.awsec2wakelauncher.server.logic;
 
 /*-
  * #%L

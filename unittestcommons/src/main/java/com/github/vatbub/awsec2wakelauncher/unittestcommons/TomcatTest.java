@@ -51,8 +51,8 @@ public abstract class TomcatTest {
 
         // copy src/main/webapp to webapps/src/main/webapp
         baseDir = tomcat.getServer().getCatalinaHome().toPath();
-        Path sourcePath = baseDir;
-        Path webappsPath = sourcePath.resolve("webapps");
+        Path sourcePath = baseDir.getParent().resolve("server");
+        Path webappsPath = baseDir.resolve("webapps");
         destinationPath = webappsPath;
         for (String folder : relativeFolders) {
             sourcePath = sourcePath.resolve(folder);

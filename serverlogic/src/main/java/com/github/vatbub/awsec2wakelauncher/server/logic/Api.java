@@ -1,4 +1,4 @@
-package com.github.vatbub.awsec2wakelauncher.server;
+package com.github.vatbub.awsec2wakelauncher.server.logic;
 
 /*-
  * #%L
@@ -22,12 +22,11 @@ package com.github.vatbub.awsec2wakelauncher.server;
 
 
 import com.amazonaws.services.ec2.model.InstanceState;
-import com.github.vatbub.awsec2wakelauncher.common.ShutdownRequest;
 import com.github.vatbub.awsec2wakelauncher.common.WakeRequest;
 import com.github.vatbub.awsec2wakelauncher.common.WakeResponse;
 import com.github.vatbub.awsec2wakelauncher.common.internal.AwsInstanceManager;
 import com.github.vatbub.awsec2wakelauncher.common.internal.Constants;
-import com.github.vatbub.awsec2wakelauncher.common.internal.Request;
+import com.github.vatbub.awsec2wakelauncher.common.internal.Request.RequestType;
 import com.github.vatbub.common.core.Common;
 import com.github.vatbub.common.core.logging.FOKLogger;
 import com.google.gson.Gson;
@@ -45,11 +44,10 @@ import java.nio.charset.Charset;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+
 public class Api extends HttpServlet {
     private AwsInstanceManager awsInstanceManager;
     private Gson gson = new GsonBuilder().setPrettyPrinting().create();
-    private WakeRequest sampleWakeRequest = new WakeRequest("");
-    private ShutdownRequest sampleShutdownRequest = new ShutdownRequest("");
 
     @Override
     public void init() throws ServletException {
@@ -93,7 +91,7 @@ public class Api extends HttpServlet {
         requestTypeTemp = requestTypeTemp.replace("\"", "");
         requestTypeTemp = requestTypeTemp.replace("requestType: ", "");
 
-        Request.RequestType requestType = Request.RequestType.valueOf(requestTypeTemp);
+        RequestType requestType = RequestType.valueOf(requestTypeTemp);
 
         FOKLogger.fine(getClass().getName(), "Request type is: " + requestType);
 

@@ -21,7 +21,7 @@ package com.github.vatbub.awsec2wakelauncher.applicationclient;
  */
 
 
-import com.github.vatbub.awsec2wakelauncher.server.Api;
+import com.github.vatbub.awsec2wakelauncher.server.logic.Api;
 import com.github.vatbub.awsec2wakelauncher.unittestcommons.MockAwsInstanceManager;
 import com.github.vatbub.awsec2wakelauncher.unittestcommons.TomcatTest;
 import org.apache.catalina.LifecycleException;
@@ -58,6 +58,7 @@ public class ClientTest extends TomcatTest {
     }
     @Test
     public void basicClientTest() throws Exception {
+        useMockInstanceManager();
         client.launchAndWaitForInstance("i-45678765");
     }
 }
