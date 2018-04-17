@@ -36,6 +36,7 @@ import java.util.List;
 public abstract class TomcatTest {
     private static Tomcat tomcat;
     private static Path destinationPath;
+    private static Path webappsPath;
     private static Path baseDir;
     private static Context context;
 
@@ -52,7 +53,7 @@ public abstract class TomcatTest {
         // copy src/main/webapp to webapps/src/main/webapp
         baseDir = tomcat.getServer().getCatalinaHome().toPath();
         Path sourcePath = baseDir.getParent().resolve("server");
-        Path webappsPath = baseDir.resolve("webapps");
+        webappsPath = baseDir.resolve("webapps");
         destinationPath = webappsPath;
         for (String folder : relativeFolders) {
             sourcePath = sourcePath.resolve(folder);
@@ -75,6 +76,7 @@ public abstract class TomcatTest {
     public static void shutDownTomcat() throws LifecycleException, IOException {
         tomcat.stop();
         FileUtils.deleteDirectory(destinationPath.toFile());
+        FileUtils.deleteDirectory(webappsPath.toFile());
         FileUtils.deleteDirectory(baseDir.resolve("work").toFile());
     }
 
