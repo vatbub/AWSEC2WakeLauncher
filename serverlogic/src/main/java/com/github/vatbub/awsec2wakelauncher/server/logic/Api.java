@@ -65,11 +65,6 @@ public class Api extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        super.doGet(req, resp);
-    }
-
-    @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         FOKLogger.info(getClass().getName(), "Received POST request, parsing...");
         StringWriter stringWriter = new StringWriter();
@@ -91,12 +86,20 @@ public class Api extends HttpServlet {
         requestTypeTemp = requestTypeTemp.replace("\"", "");
         requestTypeTemp = requestTypeTemp.replace("requestType: ", "");
 
-        RequestType requestType = RequestType.valueOf(requestTypeTemp);
+        RequestType requestType;
+
+        try {
+            requestType = RequestType.valueOf(requestTypeTemp);
+        } catch (IllegalArgumentException e) {
+            FOKLogger.info(getClass().getName(), "Request had illegal request type, sending error...");
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Illegal request type");
+            return;
+        }
 
         FOKLogger.fine(getClass().getName(), "Request type is: " + requestType);
 
         switch (requestType) {
-            case WakeRequest:
+            case WAKE_REQUEST:
                 WakeRequest wakeRequest = gson.fromJson(requestBody, WakeRequest.class);
                 WakeResponse wakeResponse = new WakeResponse(wakeRequest.getInstanceId());
                 InstanceState instanceState = getAwsInstanceManager().getInstanceState(wakeRequest.getInstanceId());
@@ -122,11 +125,11 @@ public class Api extends HttpServlet {
                 IOUtils.copy(stringReader, resp.getOutputStream(), Charset.forName("UTF-8"));
                 resp.setStatus(HttpServletResponse.SC_OK);
                 break;
-            case ShutdownRequest:
+            case SHUTDOWN_REQUEST:
                 break;
             default:
-                FOKLogger.info(getClass().getName(), "Request had illegal request type, sending error...");
-                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Illegal request type");
+                FOKLogger.info(getClass().getName(), "Internal server error: Illegal enum value");
+                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Illegal enum value");
         }
     }
 

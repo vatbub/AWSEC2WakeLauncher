@@ -25,18 +25,11 @@ import com.github.vatbub.awsec2wakelauncher.common.internal.Request;
 import com.github.vatbub.common.updater.Version;
 
 public class WakeRequest extends Request {
-    private String requestType = "WakeRequest";
-
     public WakeRequest(String instanceId) {
-        super(instanceId);
+        super(instanceId, RequestType.WAKE_REQUEST);
     }
 
     public WakeRequest(String instanceId, Version protocolVersion) {
-        super(instanceId, protocolVersion);
-    }
-
-    @Override
-    public RequestType getRequestType() {
-        return RequestType.WakeRequest;
+        super(instanceId, protocolVersion, RequestType.WAKE_REQUEST);
     }
 }
