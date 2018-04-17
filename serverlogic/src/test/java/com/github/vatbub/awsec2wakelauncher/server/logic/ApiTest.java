@@ -40,6 +40,7 @@ import com.jsunsoft.http.ResponseDeserializer;
 import org.apache.catalina.LifecycleException;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -63,6 +64,11 @@ public class ApiTest extends TomcatTest {
         api = new Api();
         TomcatTest.startServer(TOMCAT_PORT, "", "ApiServlet", api, "/" + apiSuffix);
         gson = new GsonBuilder().setPrettyPrinting().create();
+    }
+
+    @Before
+    public void resetMockInstanceManager() {
+        api.resetInstanceManager();
     }
 
     private static void useMockInstanceManager() {
