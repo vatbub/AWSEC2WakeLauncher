@@ -1,4 +1,4 @@
-package com.github.vatbub.awsec2wakelauncher.server;
+package com.github.vatbub.awsec2wakelauncher.unittestcommons;
 
 /*-
  * #%L
@@ -22,6 +22,7 @@ package com.github.vatbub.awsec2wakelauncher.server;
 
 
 import com.amazonaws.services.ec2.model.InstanceState;
+import com.github.vatbub.awsec2wakelauncher.common.internal.AwsInstanceManager;
 import com.github.vatbub.common.core.logging.FOKLogger;
 
 import java.util.HashMap;

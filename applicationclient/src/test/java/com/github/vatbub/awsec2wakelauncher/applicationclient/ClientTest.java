@@ -21,14 +21,43 @@ package com.github.vatbub.awsec2wakelauncher.applicationclient;
  */
 
 
+import com.github.vatbub.awsec2wakelauncher.server.Api;
+import com.github.vatbub.awsec2wakelauncher.unittestcommons.MockAwsInstanceManager;
+import com.github.vatbub.awsec2wakelauncher.unittestcommons.TomcatTest;
+import org.apache.catalina.LifecycleException;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 
-public class ClientTest {
+public class ClientTest extends TomcatTest {
+    private static final int TOMCAT_PORT = 9999;
+    private static final String apiSuffix = "api";
+    private static Api api;
+    private Client client;
+
+    @BeforeClass
+    public static void startServer() throws LifecycleException, IOException {
+        api = new Api();
+        TomcatTest.startServer(TOMCAT_PORT, "", "ApiServlet", api, "/" + apiSuffix);
+    }
+
+    @Before
+    public void setClientUp() throws MalformedURLException {
+        client = new Client(new URL("http", "localhost", TOMCAT_PORT, ""), apiSuffix);
+    }
+
+    private void useMockInstanceManager() {
+        if (api.getAwsInstanceManager() instanceof MockAwsInstanceManager)
+            return; // already using mock manager
+
+        api.setAwsInstanceManager(new MockAwsInstanceManager(10));
+    }
     @Test
     public void basicClientTest() throws Exception {
-        Client client = new Client(new URL("http://localhost:8080"));
         client.launchAndWaitForInstance("i-45678765");
     }
 }

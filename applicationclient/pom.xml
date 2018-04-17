@@ -22,6 +22,19 @@
             <artifactId>http-request</artifactId>
             <version>1.0.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.github.vatbub</groupId>
+            <artifactId>awsec2wakelauncher.unittestcommons</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.vatbub</groupId>
+            <artifactId>awsec2wakelauncher.server</artifactId>
+            <type>war</type>
+            <version>1.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 

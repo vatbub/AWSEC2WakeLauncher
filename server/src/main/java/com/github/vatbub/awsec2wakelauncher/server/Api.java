@@ -25,6 +25,7 @@ import com.amazonaws.services.ec2.model.InstanceState;
 import com.github.vatbub.awsec2wakelauncher.common.ShutdownRequest;
 import com.github.vatbub.awsec2wakelauncher.common.WakeRequest;
 import com.github.vatbub.awsec2wakelauncher.common.WakeResponse;
+import com.github.vatbub.awsec2wakelauncher.common.internal.AwsInstanceManager;
 import com.github.vatbub.awsec2wakelauncher.common.internal.Constants;
 import com.github.vatbub.awsec2wakelauncher.common.internal.Request;
 import com.github.vatbub.common.core.Common;

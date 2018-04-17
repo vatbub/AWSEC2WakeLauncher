@@ -21,79 +21,39 @@ package com.github.vatbub.awsec2wakelauncher.server;
  */
 
 
-import com.github.vatbub.awsec2wakelauncher.applicationclient.Client;
-import org.apache.catalina.Context;
+import com.github.vatbub.awsec2wakelauncher.common.WakeRequest;
+import com.github.vatbub.awsec2wakelauncher.common.WakeResponse;
+import com.github.vatbub.awsec2wakelauncher.unittestcommons.MockAwsInstanceManager;
+import com.github.vatbub.awsec2wakelauncher.unittestcommons.TomcatTest;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.jsunsoft.http.HttpRequest;
+import com.jsunsoft.http.HttpRequestBuilder;
+import com.jsunsoft.http.ResponseDeserializer;
 import org.apache.catalina.LifecycleException;
-import org.apache.catalina.startup.Tomcat;
-import org.apache.commons.io.FileUtils;
-import org.junit.*;
+import org.hamcrest.Matchers;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 
 
-public class ApiTest {
+public class ApiTest extends TomcatTest {
     private static final int TOMCAT_PORT = 9999;
     private static final String apiSuffix = "api";
-    private static Tomcat tomcat;
-    private static Path destinationPath;
-    private static Path baseDir;
-    private static Context context;
+    private static Gson gson;
     private static Api api;
-    private Client client;
 
     @BeforeClass
     public static void startServer() throws LifecycleException, IOException {
-        List<String> relativeFolders = new ArrayList<>();
-        relativeFolders.add("src");
-        relativeFolders.add("main");
-        relativeFolders.add("webapp");
-
-        tomcat = new Tomcat();
-        tomcat.setBaseDir(".");
-        tomcat.setPort(TOMCAT_PORT);
-        System.out.println(tomcat.getServer().getCatalinaHome());
-
-        // copy src/main/webapp to webapps/src/main/webapp
-        baseDir = tomcat.getServer().getCatalinaHome().toPath();
-        Path sourcePath = baseDir;
-        Path webappsPath = sourcePath.resolve("webapps");
-        destinationPath = webappsPath;
-        for (String folder : relativeFolders) {
-            sourcePath = sourcePath.resolve(folder);
-            destinationPath = destinationPath.resolve(folder);
-        }
-
-        FileUtils.copyDirectory(sourcePath.toFile(), destinationPath.toFile());
-
-        Path relativePath = webappsPath.relativize(destinationPath);
-        System.out.println(relativePath);
-
-        /* There needs to be a symlink to the current dir named 'webapps' */
-        context = tomcat.addContext("", relativePath.toString());
         api = new Api();
-        // context.getServletContext().addServlet("ApiServlet", api);
-        tomcat.addServlet("", "ApiServlet", api);
-        context.addServletMappingDecoded("/" + apiSuffix, "ApiServlet");
-        tomcat.init();
-        tomcat.start();
+        TomcatTest.startServer(TOMCAT_PORT, "", "ApiServlet", api, "/" + apiSuffix);
+        gson = new GsonBuilder().setPrettyPrinting().create();
     }
 
-    @AfterClass
-    public static void shutDownTomcat() throws LifecycleException, IOException {
-        tomcat.stop();
-        FileUtils.deleteDirectory(destinationPath.toFile());
-        FileUtils.deleteDirectory(baseDir.resolve("work").toFile());
-    }
-
-    @Before
-    public void setClientUp() throws MalformedURLException {
-        client = new Client(new URL("http", "localhost", TOMCAT_PORT, ""), apiSuffix);
-    }
+    //     client = new Client(new URL("http", "localhost", TOMCAT_PORT, ""), apiSuffix);
 
     private void useMockInstanceManager() {
         if (api.getAwsInstanceManager() instanceof MockAwsInstanceManager)
@@ -102,17 +62,35 @@ public class ApiTest {
         api.setAwsInstanceManager(new MockAwsInstanceManager(10));
     }
 
-    private void resetInstanecManager() {
-        api.resetInstanceManager();
-    }
-
     @Test
     public void wakeRequestTest() throws Exception {
         useMockInstanceManager();
 
         String instanceId = "i-765876";
+        WakeRequest wakeRequest = new WakeRequest(instanceId);
+        String json = gson.toJson(wakeRequest, WakeRequest.class);
+        System.out.print(json);
 
-        client.launchAndWaitForInstance(instanceId);
-        Assert.assertEquals(16, api.getAwsInstanceManager().getInstanceState(instanceId).getCode().intValue());
+        int loopCounter = 0;
+
+        while (true) {
+            HttpRequest<String> httpRequest = HttpRequestBuilder.createPost(new URL(new URL("http", "localhost", TOMCAT_PORT, ""), apiSuffix).toURI(), String.class)
+                    .responseDeserializer(ResponseDeserializer.ignorableDeserializer()).build();
+            String responseBody = httpRequest.executeWithBody(json).get();
+
+            WakeResponse wakeResponse = gson.fromJson(responseBody, WakeResponse.class);
+
+            switch (loopCounter) {
+                case 0:
+                    Assert.assertEquals(80, wakeResponse.getInstanceState());
+                    break;
+                default:
+                    Assert.assertThat(wakeResponse.getInstanceState(), Matchers.anyOf(Matchers.equalTo(0), Matchers.equalTo(16)));
+            }
+
+            loopCounter++;
+            if (wakeResponse.getInstanceState() == 16)
+                break;
+        }
     }
 }
