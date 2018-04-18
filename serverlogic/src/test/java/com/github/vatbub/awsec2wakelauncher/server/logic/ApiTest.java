@@ -53,6 +53,7 @@ import java.util.logging.Level;
 public class ApiTest extends TomcatTest {
     private static final int TOMCAT_PORT = 9999;
     private static final String apiSuffix = "api";
+    private final static String INSTANCE_ID = "i-765876";
     private static Gson gson;
     private static Api api;
     private static MockAwsInstanceManager mockAwsInstanceManager;
@@ -66,11 +67,6 @@ public class ApiTest extends TomcatTest {
         gson = new GsonBuilder().setPrettyPrinting().create();
     }
 
-    @Before
-    public void resetMockInstanceManager() {
-        api.resetInstanceManager();
-    }
-
     private static void useMockInstanceManager() {
         if (api.getAwsInstanceManager() instanceof MockAwsInstanceManager)
             return; // already using mock manager
@@ -79,12 +75,16 @@ public class ApiTest extends TomcatTest {
         api.setAwsInstanceManager(mockAwsInstanceManager);
     }
 
+    @Before
+    public void resetMockInstanceManager() {
+        api.resetInstanceManager();
+    }
+
     @Test
     public void wakeRequestTest() throws Exception {
         useMockInstanceManager();
 
-        String instanceId = "i-765876";
-        WakeRequest wakeRequest = new WakeRequest(instanceId);
+        WakeRequest wakeRequest = new WakeRequest(INSTANCE_ID);
         String json = gson.toJson(wakeRequest, WakeRequest.class);
 
         int loopCounter = 0;
@@ -113,12 +113,10 @@ public class ApiTest extends TomcatTest {
     public void shutdownRequestTest() throws Exception {
         useMockInstanceManager();
 
-        String instanceId = "i-765876";
-
         // pretend the instance was already started
-        mockAwsInstanceManager.getMockInstanceStates().put(instanceId, new InstanceState().withCode(16));
+        mockAwsInstanceManager.getMockInstanceStates().put(INSTANCE_ID, new InstanceState().withCode(16));
 
-        ShutdownRequest shutdownRequest = new ShutdownRequest(instanceId);
+        ShutdownRequest shutdownRequest = new ShutdownRequest(INSTANCE_ID);
         String json = gson.toJson(shutdownRequest, ShutdownRequest.class);
 
         int loopCounter = 0;
@@ -146,8 +144,7 @@ public class ApiTest extends TomcatTest {
     @Test
     public void requestWithoutRequestType() throws MalformedURLException, URISyntaxException {
         useMockInstanceManager();
-        String instanceId = "i-765876";
-        ServerInteraction serverInteraction = new ServerInteraction(instanceId) {
+        ServerInteraction serverInteraction = new ServerInteraction(INSTANCE_ID) {
         };
 
         try {
@@ -158,21 +155,13 @@ public class ApiTest extends TomcatTest {
         }
     }
 
-    @Test
-    public void illegalRequestType() {
+    @Test(expected = NoSuchContentException.class)
+    public void illegalRequestType() throws MalformedURLException, URISyntaxException {
         useMockInstanceManager();
-        String instanceId = "i-765876";
-        RequestWithIllegalRequestType requestWithIllegalRequestType = new RequestWithIllegalRequestType(instanceId);
+        RequestWithIllegalRequestType requestWithIllegalRequestType = new RequestWithIllegalRequestType(INSTANCE_ID);
 
-        try {
-            String responseBody = doRequest(gson.toJson(requestWithIllegalRequestType, RequestWithIllegalRequestType.class));
-            Assert.fail("Expected NoSuchContentException, responseBody = \n" + responseBody);
-        } catch (NoSuchContentException e) {
-            FOKLogger.log(getClass().getName(), Level.INFO, "Expected exception occurred", e);
-        } catch (URISyntaxException | MalformedURLException e) {
-            // unexpected
-            throw new RuntimeException(e);
-        }
+        String responseBody = doRequest(gson.toJson(requestWithIllegalRequestType, RequestWithIllegalRequestType.class));
+        Assert.fail("Expected NoSuchContentException, responseBody = \n" + responseBody);
     }
 
     @Test
@@ -182,6 +171,46 @@ public class ApiTest extends TomcatTest {
         Assert.assertTrue(api.getAwsInstanceManager() instanceof MockAwsInstanceManager);
         api.resetInstanceManager();
         Assert.assertFalse(api.getAwsInstanceManager() instanceof MockAwsInstanceManager);
+    }
+
+    @Test(expected = NoSuchContentException.class)
+    public void wakeRequestWithoutInstanceId() throws Exception {
+        useMockInstanceManager();
+
+        WakeRequest wakeRequest = new WakeRequest(null);
+        String json = gson.toJson(wakeRequest, WakeRequest.class);
+
+        doRequest(json);
+    }
+
+    @Test(expected = NoSuchContentException.class)
+    public void shutdownRequestWithoutInstanceId() throws Exception {
+        useMockInstanceManager();
+
+        ShutdownRequest shutdownRequest = new ShutdownRequest(null);
+        String json = gson.toJson(shutdownRequest, WakeRequest.class);
+
+        doRequest(json);
+    }
+
+    @Test
+    public void wakeRequestWithoutProtocolVersion() throws Exception {
+        useMockInstanceManager();
+
+        WakeRequest wakeRequest = new WakeRequest(INSTANCE_ID, null);
+        String json = gson.toJson(wakeRequest, WakeRequest.class);
+
+        System.out.println(doRequest(json));
+    }
+
+    @Test
+    public void shutdownRequestWithoutProtocolVersion() throws Exception {
+        useMockInstanceManager();
+
+        ShutdownRequest shutdownRequest = new ShutdownRequest(INSTANCE_ID, null);
+        String json = gson.toJson(shutdownRequest, WakeRequest.class);
+
+        System.out.println(doRequest(json));
     }
 
     private String doRequest(String json) throws MalformedURLException, URISyntaxException {

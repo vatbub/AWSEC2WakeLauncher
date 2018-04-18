@@ -105,6 +105,18 @@ public class Api extends HttpServlet {
         switch (requestType) {
             case WAKE_REQUEST:
                 WakeRequest wakeRequest = gson.fromJson(requestBody, WakeRequest.class);
+
+                if (wakeRequest.getProtocolVersion() == null) {
+                    FOKLogger.info(getClass().getName(), "No protocol version specified, assuming version " + Constants.DEFAULT_PROTOCOL_VERSION);
+                    wakeRequest.setProtocolVersion(Constants.DEFAULT_PROTOCOL_VERSION);
+                }
+
+                if (wakeRequest.getInstanceId() == null) {
+                    FOKLogger.info(getClass().getName(), "Wake request contained no instanceId");
+                    resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "No instance id specified");
+                    return;
+                }
+
                 WakeResponse wakeResponse = new WakeResponse(wakeRequest.getInstanceId());
                 InstanceState instanceState = getAwsInstanceManager().getInstanceState(wakeRequest.getInstanceId());
 
@@ -120,6 +132,17 @@ public class Api extends HttpServlet {
                 break;
             case SHUTDOWN_REQUEST:
                 ShutdownRequest shutdownRequest = gson.fromJson(requestBody, ShutdownRequest.class);
+
+                if (shutdownRequest.getProtocolVersion() == null) {
+                    FOKLogger.info(getClass().getName(), "No protocol version specified, assuming version " + Constants.DEFAULT_PROTOCOL_VERSION);
+                    shutdownRequest.setProtocolVersion(Constants.DEFAULT_PROTOCOL_VERSION);
+                }
+                if (shutdownRequest.getInstanceId() == null) {
+                    FOKLogger.info(getClass().getName(), "Wake request contained no instanceId");
+                    resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "No instance id specified");
+                    return;
+                }
+
                 ShutdownResponse shutdownResponse = new ShutdownResponse(shutdownRequest.getInstanceId());
                 instanceState = getAwsInstanceManager().getInstanceState(shutdownRequest.getInstanceId());
 
@@ -134,7 +157,7 @@ public class Api extends HttpServlet {
                 responseJson = gson.toJson(shutdownResponse, ShutdownResponse.class);
                 break;
             default:
-                FOKLogger.info(getClass().getName(), "Internal server error: Illegal enum value");
+                FOKLogger.severe(getClass().getName(), "Internal server error: Illegal enum value");
                 resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Illegal enum value");
                 return;
         }
