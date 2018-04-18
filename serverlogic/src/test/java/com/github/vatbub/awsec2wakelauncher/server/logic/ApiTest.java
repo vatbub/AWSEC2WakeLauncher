@@ -27,8 +27,8 @@ import com.github.vatbub.awsec2wakelauncher.common.ShutdownResponse;
 import com.github.vatbub.awsec2wakelauncher.common.WakeRequest;
 import com.github.vatbub.awsec2wakelauncher.common.WakeResponse;
 import com.github.vatbub.awsec2wakelauncher.common.internal.ServerInteraction;
-import com.github.vatbub.awsec2wakelauncher.unittestcommons.MockAwsInstanceManager;
-import com.github.vatbub.awsec2wakelauncher.unittestcommons.TomcatTest;
+import com.github.vatbub.awsec2wakelauncher.common.internal.testing.MockAwsInstanceManager;
+import com.github.vatbub.awsec2wakelauncher.common.internal.testing.TomcatTest;
 import com.github.vatbub.common.core.logging.FOKLogger;
 import com.github.vatbub.common.updater.Version;
 import com.google.gson.Gson;
@@ -61,7 +61,7 @@ public class ApiTest extends TomcatTest {
     //     client = new Client(new URL("http", "localhost", TOMCAT_PORT, ""), apiSuffix);
 
     @BeforeClass
-    public static void startServer() throws LifecycleException, IOException {
+    public static void startServer() throws IOException, LifecycleException {
         api = new Api();
         TomcatTest.startServer(TOMCAT_PORT, "", "ApiServlet", api, "/" + apiSuffix);
         gson = new GsonBuilder().setPrettyPrinting().create();

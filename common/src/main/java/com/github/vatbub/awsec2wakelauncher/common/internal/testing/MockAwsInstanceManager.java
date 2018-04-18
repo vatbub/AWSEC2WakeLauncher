@@ -1,4 +1,4 @@
-package com.github.vatbub.awsec2wakelauncher.unittestcommons;
+package com.github.vatbub.awsec2wakelauncher.common.internal.testing;
 
 /*-
  * #%L

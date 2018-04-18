@@ -23,8 +23,10 @@ package com.github.vatbub.awsec2wakelauncher.common.internal;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2Client;
+import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.ec2.model.*;
 
 import java.util.ArrayList;
@@ -34,7 +36,11 @@ public class AwsInstanceManager {
     private AmazonEC2 ec2Client;
 
     public AwsInstanceManager(String region, String awsAccessKeyId, String awsSecretKey) {
-        setEc2Client(AmazonEC2Client.builder().withRegion(region).withCredentials(new AWSCredentialsProvider() {
+        this(region, awsAccessKeyId, awsSecretKey, null);
+    }
+
+    public AwsInstanceManager(String region, String awsAccessKeyId, String awsSecretKey, AwsClientBuilder.EndpointConfiguration endpointConfiguration) {
+        AmazonEC2ClientBuilder clientBuilder = AmazonEC2Client.builder().withCredentials(new AWSCredentialsProvider() {
             @Override
             public AWSCredentials getCredentials() {
                 return new AWSCredentials() {
@@ -54,7 +60,14 @@ public class AwsInstanceManager {
             public void refresh() {
                 // No-op
             }
-        }).build());
+        });
+
+        if (endpointConfiguration == null)
+            clientBuilder.withRegion(region);
+        else
+            clientBuilder.withEndpointConfiguration(endpointConfiguration);
+
+        setEc2Client(clientBuilder.build());
     }
 
     public AmazonEC2 getEc2Client() {

@@ -21,9 +21,9 @@ package com.github.vatbub.awsec2wakelauncher.applicationclient;
  */
 
 
+import com.github.vatbub.awsec2wakelauncher.common.internal.testing.MockAwsInstanceManager;
+import com.github.vatbub.awsec2wakelauncher.common.internal.testing.TomcatTest;
 import com.github.vatbub.awsec2wakelauncher.server.logic.Api;
-import com.github.vatbub.awsec2wakelauncher.unittestcommons.MockAwsInstanceManager;
-import com.github.vatbub.awsec2wakelauncher.unittestcommons.TomcatTest;
 import com.jsunsoft.http.NoSuchContentException;
 import org.apache.catalina.LifecycleException;
 import org.junit.Assert;

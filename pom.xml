@@ -63,7 +63,6 @@
         <module>server</module>
         <module>applicationclient</module>
         <module>common</module>
-        <module>unittestcommons</module>
         <module>serverlogic</module>
     </modules>
 
