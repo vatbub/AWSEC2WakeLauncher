@@ -22,38 +22,84 @@ package com.github.vatbub.awsec2wakelauncher.common.internal;
 
 
 import com.amazonaws.client.builder.AwsClientBuilder;
-import com.github.vatbub.awsec2wakelauncher.common.internal.testing.TomcatTest;
-import com.tlswe.awsmock.cloudwatch.servlet.MockCloudWatchEndpointServlet;
-import org.apache.catalina.LifecycleException;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import com.amazonaws.services.ec2.model.RunInstancesRequest;
+import com.amazonaws.services.ec2.model.RunInstancesResult;
+import com.amazonaws.services.ec2.model.StopInstancesRequest;
+import com.amazonaws.services.ec2.model.TerminateInstancesRequest;
+import org.apache.commons.io.IOUtils;
+import org.hamcrest.Matchers;
+import org.junit.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-public class AwsInstanceManagerTest extends TomcatTest {
+public class AwsInstanceManagerTest {
     private final static int AWS_PORT = 8000;
     private final static String AWS_REGION = "eu-central-1";
     private final static String AWS_KEY = "zuhuiuztgvfcdetzu";
     private final static String AWS_SECRET = "65rt676tghgftzujhgtr56z";
-    private final static String INSTANCE_ID = "i-456787";
+    private static String INSTANCE_ID;
+    private static Process serverProcess;
+    private static IOException streamCopyException;
     private AwsInstanceManager awsInstanceManager;
 
     @BeforeClass
-    public static void startServer() throws IOException, LifecycleException {
-        TomcatTest.startServer(AWS_PORT, "", "MockEc2EndpointServlet", new MockCloudWatchEndpointServlet(), "/ec2-endpoint/*");
+    public static void startServer() throws IOException {
+        serverProcess = Runtime.getRuntime().exec("moto_server ec2 -p" + AWS_PORT);
+        new Thread(() -> {
+            try {
+                IOUtils.copy(serverProcess.getInputStream(), System.out);
+            } catch (IOException e) {
+                streamCopyException = e;
+            }
+        }).start();
+    }
+
+    @AfterClass
+    public static void stopServer() throws IOException {
+        if (streamCopyException != null)
+            throw streamCopyException;
+        if (serverProcess != null && serverProcess.isAlive())
+            serverProcess.destroy();
     }
 
     @Before
     public void setAwsInstanceManagerUp() {
-        awsInstanceManager = new AwsInstanceManager(AWS_REGION, AWS_KEY, AWS_SECRET, new AwsClientBuilder.EndpointConfiguration("http://localhost:" + AWS_PORT + "/ec2-endpoint/", AWS_REGION));
+        awsInstanceManager = new AwsInstanceManager(AWS_REGION, AWS_KEY, AWS_SECRET, new AwsClientBuilder.EndpointConfiguration("http://localhost:" + AWS_PORT, AWS_REGION));
+
+        // create the instance
+        RunInstancesRequest runInstancesRequest =
+                new RunInstancesRequest();
+
+        runInstancesRequest.withImageId("ami-ac442ac3")
+                .withInstanceType("m1.small")
+                .withMinCount(1)
+                .withMaxCount(1)
+                .withKeyName("my-key-pair")
+                .withSecurityGroups("my-security-group");
+        RunInstancesResult runInstancesResult = awsInstanceManager.getEc2Client().runInstances(runInstancesRequest);
+        INSTANCE_ID = runInstancesResult.getReservation().getInstances().get(0).getInstanceId();
+
+        List<String> instanceIds = new ArrayList<>();
+        instanceIds.add(INSTANCE_ID);
+
+        StopInstancesRequest stopInstancesRequest = new StopInstancesRequest(instanceIds);
+        awsInstanceManager.getEc2Client().stopInstances(stopInstancesRequest);
+    }
+
+    @After
+    public void terminateInstance() {
+        List<String> instanceIds = new ArrayList<>();
+        instanceIds.add(INSTANCE_ID);
+        TerminateInstancesRequest terminateInstancesRequest = new TerminateInstancesRequest(instanceIds);
+        awsInstanceManager.getEc2Client().terminateInstances(terminateInstancesRequest);
     }
 
     @Test
     public void startInstanceTest() {
         awsInstanceManager.startInstance(INSTANCE_ID);
-        Assert.assertEquals(0, awsInstanceManager.getInstanceState(INSTANCE_ID).getCode().intValue());
+        Assert.assertThat(awsInstanceManager.getInstanceState(INSTANCE_ID).getCode(), Matchers.anyOf(Matchers.equalTo(0), Matchers.equalTo(16)));
     }
 
     @Test
@@ -63,6 +109,6 @@ public class AwsInstanceManagerTest extends TomcatTest {
             System.out.println("Waiting for instance to boot...");
 
         awsInstanceManager.stopInstance(INSTANCE_ID);
-        Assert.assertEquals(64, awsInstanceManager.getInstanceState(INSTANCE_ID).getCode().intValue());
+        Assert.assertThat(awsInstanceManager.getInstanceState(INSTANCE_ID).getCode(), Matchers.anyOf(Matchers.equalTo(64), Matchers.equalTo(80)));
     }
 }
