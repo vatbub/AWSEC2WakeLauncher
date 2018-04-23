@@ -37,6 +37,6 @@ public abstract class Request extends ServerInteraction {
     }
 
     public enum RequestType {
-        WAKE_REQUEST, SHUTDOWN_REQUEST
+        WAKE_REQUEST
     }
 }

@@ -22,8 +22,6 @@ package com.github.vatbub.awsec2wakelauncher.server.logic;
 
 
 import com.amazonaws.services.ec2.model.InstanceState;
-import com.github.vatbub.awsec2wakelauncher.common.ShutdownRequest;
-import com.github.vatbub.awsec2wakelauncher.common.ShutdownResponse;
 import com.github.vatbub.awsec2wakelauncher.common.WakeRequest;
 import com.github.vatbub.awsec2wakelauncher.common.WakeResponse;
 import com.github.vatbub.awsec2wakelauncher.common.internal.AwsInstanceManager;
@@ -129,32 +127,6 @@ public class Api extends HttpServlet {
                 wakeResponse.setNewInstanceState(getAwsInstanceManager().getInstanceState(wakeRequest.getInstanceId()).getCode());
 
                 responseJson = gson.toJson(wakeResponse, WakeResponse.class);
-                break;
-            case SHUTDOWN_REQUEST:
-                ShutdownRequest shutdownRequest = gson.fromJson(requestBody, ShutdownRequest.class);
-
-                if (shutdownRequest.getProtocolVersion() == null) {
-                    FOKLogger.info(getClass().getName(), "No protocol version specified, assuming version " + Constants.DEFAULT_PROTOCOL_VERSION);
-                    shutdownRequest.setProtocolVersion(Constants.DEFAULT_PROTOCOL_VERSION);
-                }
-                if (shutdownRequest.getInstanceId() == null) {
-                    FOKLogger.info(getClass().getName(), "Wake request contained no instanceId");
-                    resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "No instance id specified");
-                    return;
-                }
-
-                ShutdownResponse shutdownResponse = new ShutdownResponse(shutdownRequest.getInstanceId());
-                instanceState = getAwsInstanceManager().getInstanceState(shutdownRequest.getInstanceId());
-
-                shutdownResponse.setPreviousInstanceState(instanceState.getCode());
-
-                if (instanceState.getCode() == 16)
-                    // only stop the instance when it's running (cannot stop pending, stopping or terminated instances.
-                    getAwsInstanceManager().stopInstance(shutdownRequest.getInstanceId());
-
-                shutdownResponse.setNewInstanceState(getAwsInstanceManager().getInstanceState(shutdownRequest.getInstanceId()).getCode());
-
-                responseJson = gson.toJson(shutdownResponse, ShutdownResponse.class);
                 break;
             default:
                 FOKLogger.severe(getClass().getName(), "Internal server error: Illegal enum value");

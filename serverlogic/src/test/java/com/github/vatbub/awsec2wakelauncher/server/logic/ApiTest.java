@@ -21,9 +21,6 @@ package com.github.vatbub.awsec2wakelauncher.server.logic;
  */
 
 
-import com.amazonaws.services.ec2.model.InstanceState;
-import com.github.vatbub.awsec2wakelauncher.common.ShutdownRequest;
-import com.github.vatbub.awsec2wakelauncher.common.ShutdownResponse;
 import com.github.vatbub.awsec2wakelauncher.common.WakeRequest;
 import com.github.vatbub.awsec2wakelauncher.common.WakeResponse;
 import com.github.vatbub.awsec2wakelauncher.common.internal.ServerInteraction;
@@ -56,7 +53,6 @@ public class ApiTest extends TomcatTest {
     private final static String INSTANCE_ID = "i-765876";
     private static Gson gson;
     private static Api api;
-    private static MockAwsInstanceManager mockAwsInstanceManager;
 
     //     client = new Client(new URL("http", "localhost", TOMCAT_PORT, ""), apiSuffix);
 
@@ -71,8 +67,7 @@ public class ApiTest extends TomcatTest {
         if (api.getAwsInstanceManager() instanceof MockAwsInstanceManager)
             return; // already using mock manager
 
-        mockAwsInstanceManager = new MockAwsInstanceManager(10);
-        api.setAwsInstanceManager(mockAwsInstanceManager);
+        api.setAwsInstanceManager(new MockAwsInstanceManager(10));
     }
 
     @Before
@@ -105,38 +100,6 @@ public class ApiTest extends TomcatTest {
 
             loopCounter++;
             if (wakeResponse.getNewInstanceState() == 16)
-                break;
-        }
-    }
-
-    @Test
-    public void shutdownRequestTest() throws Exception {
-        useMockInstanceManager();
-
-        // pretend the instance was already started
-        mockAwsInstanceManager.getMockInstanceStates().put(INSTANCE_ID, new InstanceState().withCode(16));
-
-        ShutdownRequest shutdownRequest = new ShutdownRequest(INSTANCE_ID);
-        String json = gson.toJson(shutdownRequest, ShutdownRequest.class);
-
-        int loopCounter = 0;
-
-        while (true) {
-            String responseBody = doRequest(json);
-            ShutdownResponse wakeResponse = gson.fromJson(responseBody, ShutdownResponse.class);
-
-            switch (loopCounter) {
-                case 0:
-                    Assert.assertEquals(16, wakeResponse.getPreviousInstanceState());
-                    Assert.assertEquals(64, wakeResponse.getNewInstanceState());
-                    break;
-                default:
-                    Assert.assertThat(wakeResponse.getPreviousInstanceState(), Matchers.anyOf(Matchers.equalTo(64), Matchers.equalTo(80)));
-                    Assert.assertThat(wakeResponse.getNewInstanceState(), Matchers.anyOf(Matchers.equalTo(64), Matchers.equalTo(80)));
-            }
-
-            loopCounter++;
-            if (wakeResponse.getNewInstanceState() == 80)
                 break;
         }
     }
@@ -183,32 +146,12 @@ public class ApiTest extends TomcatTest {
         doRequest(json);
     }
 
-    @Test(expected = NoSuchContentException.class)
-    public void shutdownRequestWithoutInstanceId() throws Exception {
-        useMockInstanceManager();
-
-        ShutdownRequest shutdownRequest = new ShutdownRequest(null);
-        String json = gson.toJson(shutdownRequest, WakeRequest.class);
-
-        doRequest(json);
-    }
-
     @Test
     public void wakeRequestWithoutProtocolVersion() throws Exception {
         useMockInstanceManager();
 
         WakeRequest wakeRequest = new WakeRequest(INSTANCE_ID, null);
         String json = gson.toJson(wakeRequest, WakeRequest.class);
-
-        System.out.println(doRequest(json));
-    }
-
-    @Test
-    public void shutdownRequestWithoutProtocolVersion() throws Exception {
-        useMockInstanceManager();
-
-        ShutdownRequest shutdownRequest = new ShutdownRequest(INSTANCE_ID, null);
-        String json = gson.toJson(shutdownRequest, WakeRequest.class);
 
         System.out.println(doRequest(json));
     }
@@ -221,12 +164,14 @@ public class ApiTest extends TomcatTest {
     }
 
     private class RequestWithIllegalRequestType extends ServerInteraction {
+        @SuppressWarnings("unused")
         public String requestType = "ILLEGAL_VALUE";
 
         public RequestWithIllegalRequestType(String instanceId) {
             super(instanceId);
         }
 
+        @SuppressWarnings("unused")
         public RequestWithIllegalRequestType(String instanceId, Version protocolVersion) {
             super(instanceId, protocolVersion);
         }
