@@ -35,7 +35,7 @@ import com.github.vatbub.awsec2wakelauncher.applicationclient.Client;
 public class Sample{
 	public void sample(){
 		Client client = new Client (new URL("localhost"));
-		launchAndWaitForInstance(instanceId);
+		client.launchAndWaitForInstance(instanceId);
 	}
 }
 ```
