@@ -99,7 +99,7 @@ public class MockAwsInstanceManager extends AwsInstanceManager {
     private abstract class InstanceLifecycleThread extends Thread {
         private boolean finish;
         private String instanceId;
-        private long startTime;
+        private final long startTime;
 
         public InstanceLifecycleThread(String instanceId) {
             setInstanceId(instanceId);
@@ -127,6 +127,7 @@ public class MockAwsInstanceManager extends AwsInstanceManager {
             this.instanceId = instanceId;
         }
 
+        @SuppressWarnings("BooleanMethodIsAlwaysInverted")
         public boolean isFinish() {
             return finish;
         }

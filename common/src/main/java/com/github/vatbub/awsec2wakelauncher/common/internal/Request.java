@@ -24,6 +24,7 @@ package com.github.vatbub.awsec2wakelauncher.common.internal;
 import com.github.vatbub.common.updater.Version;
 
 public abstract class Request extends ServerInteraction {
+    @SuppressWarnings("unused")
     public final RequestType requestType;
 
     public Request(String instanceId, RequestType requestType) {

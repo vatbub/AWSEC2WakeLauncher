@@ -33,7 +33,7 @@ import java.net.URL;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Client {
-    private Gson gson;
+    private final Gson gson;
     private URL serverBaseUrl;
     private String apiSuffix;
 

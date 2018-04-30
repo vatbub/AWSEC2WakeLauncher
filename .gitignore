@@ -1,8 +1,6 @@
 tomcat.8080/
 .idea/**/workspace.xml
 .idea/**/libraries
-*.class
-*.jar
 .idea/AWSEC2WakeLauncher.iml
 .idea/artifacts/
 .idea/compiler.xml

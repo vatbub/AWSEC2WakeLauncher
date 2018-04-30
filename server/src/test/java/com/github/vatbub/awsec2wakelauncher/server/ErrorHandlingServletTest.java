@@ -40,7 +40,7 @@ import java.net.URL;
 public class ErrorHandlingServletTest extends WebappTest {
     private static final int TOMCAT_PORT = 9999;
     private static final String API_SUFFIX = "api";
-    private Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     @BeforeClass
     public static void startServer() throws ServletException, IOException, LifecycleException {
@@ -60,7 +60,7 @@ public class ErrorHandlingServletTest extends WebappTest {
     @Test
     public void test405() throws MalformedURLException, URISyntaxException {
 
-        ResponseHandler<String> response = doRequest(HttpMethod.GET, "", API_SUFFIX);
+        ResponseHandler<String> response = doEmptyRequest(HttpMethod.GET, API_SUFFIX);
         FOKLogger.info(getClass().getName(), "Response was:\n" + response);
 
         assertErrorResponse(405, "ApiServlet", null, null, "HTTP method GET is not supported by this URL", "/" + API_SUFFIX, response);
@@ -74,6 +74,7 @@ public class ErrorHandlingServletTest extends WebappTest {
         assertErrorResponse(400, "ApiServlet", null, null, "Request type missing", "/" + API_SUFFIX, response);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void assertErrorResponse(int expectedStatusCode, String expectedServletName, String expectedExceptionClass, String expectedExceptionMessage, String expectedAdditionalErrorMessage, String expectedRequestUri, ResponseHandler<String> actual) {
         Assert.assertEquals(expectedStatusCode, actual.getStatusCode());
         ErrorResponse errorResponse = gson.fromJson(actual.getErrorText(), ErrorResponse.class);
@@ -85,13 +86,12 @@ public class ErrorHandlingServletTest extends WebappTest {
     }
 
     private ResponseHandler<String> doEmptyPostRequest(String urlSuffix) throws MalformedURLException, URISyntaxException {
-        return doRequest(HttpMethod.POST, "", urlSuffix);
+        return doEmptyRequest(HttpMethod.POST, urlSuffix);
     }
 
-    private ResponseHandler<String> doRequest(HttpMethod httpMethod, String json, String urlSuffix) throws MalformedURLException, URISyntaxException {
-        FOKLogger.info(getClass().getName(), "Sending the following json:\n" + json);
+    private ResponseHandler<String> doEmptyRequest(HttpMethod httpMethod, String urlSuffix) throws MalformedURLException, URISyntaxException {
         HttpRequest<String> httpRequest = HttpRequestBuilder.create(httpMethod, new URL(new URL("http", "localhost", TOMCAT_PORT, ""), urlSuffix).toURI(), String.class)
                 .responseDeserializer(ResponseDeserializer.ignorableDeserializer()).build();
-        return httpRequest.executeWithBody(json);
+        return httpRequest.executeWithBody("");
     }
 }

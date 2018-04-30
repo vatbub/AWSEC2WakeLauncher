@@ -47,7 +47,7 @@ import java.util.regex.Pattern;
 
 public class Api extends HttpServlet {
     private AwsInstanceManager awsInstanceManager;
-    private Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     @Override
     public void init() throws ServletException {

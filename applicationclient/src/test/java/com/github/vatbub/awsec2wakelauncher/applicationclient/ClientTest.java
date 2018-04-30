@@ -61,17 +61,11 @@ public class ClientTest extends TomcatTest {
     public void basicAsyncTest() throws Exception {
         Client client = new Client(new URL("http", "localhost", TOMCAT_PORT, ""), apiSuffix);
 
-        AtomicBoolean ready = new AtomicBoolean(false);
         final Exception[] e = new Exception[1];
 
-        client.launchInstance("i-45678765", (exception) -> {
-            e[0] = exception;
-            ready.set(true);
-        });
+        Thread thread = client.launchInstance("i-45678765", (exception) -> e[0] = exception);
 
-        while (!ready.get()) {
-            System.out.print("");
-        }
+        thread.join();
 
         Assert.assertNull(e[0]);
     }

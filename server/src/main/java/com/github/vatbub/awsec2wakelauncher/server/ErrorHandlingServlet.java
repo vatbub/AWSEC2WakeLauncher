@@ -36,7 +36,7 @@ import java.nio.charset.Charset;
 
 @WebServlet("/AppExceptionHandler")
 public class ErrorHandlingServlet extends HttpServlet {
-    private Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {

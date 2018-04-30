@@ -80,10 +80,12 @@ public abstract class TomcatTest {
         FileUtils.deleteDirectory(baseDir.resolve("work").toFile());
     }
 
+    @SuppressWarnings("unused")
     public static Tomcat getTomcat() {
         return tomcat;
     }
 
+    @SuppressWarnings("unused")
     public static Context getContext() {
         return context;
     }
