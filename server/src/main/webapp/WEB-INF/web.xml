@@ -19,7 +19,7 @@
   -->
 <!DOCTYPE web-app PUBLIC
         "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
-        "http://java.sun.com/dtd/web-app_2_3.dtd" >
+        " http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd" >
 
 <web-app>
     <display-name>AWS EC" Wake Launcher</display-name>
@@ -40,6 +40,11 @@
         <servlet-class>com.github.vatbub.awsec2wakelauncher.server.logic.Api</servlet-class>
     </servlet>
 
+    <servlet>
+        <servlet-name>ErrorHandlingServlet</servlet-name>
+        <servlet-class>com.github.vatbub.awsec2wakelauncher.server.ErrorHandlingServlet</servlet-class>
+    </servlet>
+
     <servlet-mapping>
         <servlet-name>MainServlet</servlet-name>
         <url-pattern>/</url-pattern>
@@ -49,4 +54,24 @@
         <servlet-name>ApiServlet</servlet-name>
         <url-pattern>/api</url-pattern>
     </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>ErrorHandlingServlet</servlet-name>
+        <url-pattern>/ErrorHandling</url-pattern>
+    </servlet-mapping>
+
+    <error-page>
+        <error-code>405</error-code>
+        <location>/ErrorHandling</location>
+    </error-page>
+
+    <error-page>
+        <error-code>400</error-code>
+        <location>/ErrorHandling</location>
+    </error-page>
+
+    <error-page>
+        <error-code>500</error-code>
+        <location>/ErrorHandling</location>
+    </error-page>
 </web-app>
