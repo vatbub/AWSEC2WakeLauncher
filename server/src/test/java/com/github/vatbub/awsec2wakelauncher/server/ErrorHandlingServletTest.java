@@ -58,12 +58,30 @@ public class ErrorHandlingServletTest extends WebappTest {
     }
 
     @Test
-    public void test405() throws MalformedURLException, URISyntaxException {
+    public void testIllegalGet() throws MalformedURLException, URISyntaxException {
 
         ResponseHandler<String> response = doEmptyRequest(HttpMethod.GET, API_SUFFIX);
         FOKLogger.info(getClass().getName(), "Response was:\n" + response);
 
         assertErrorResponse(405, "ApiServlet", null, null, "HTTP method GET is not supported by this URL", "/" + API_SUFFIX, response);
+    }
+
+    @Test
+    public void testIllegalDelete() throws MalformedURLException, URISyntaxException {
+
+        ResponseHandler<String> response = doEmptyRequest(HttpMethod.DELETE, API_SUFFIX);
+        FOKLogger.info(getClass().getName(), "Response was:\n" + response);
+
+        assertErrorResponse(405, "ApiServlet", null, null, "Http method DELETE is not supported by this URL", "/" + API_SUFFIX, response);
+    }
+
+    @Test
+    public void testIllegalPut() throws MalformedURLException, URISyntaxException {
+
+        ResponseHandler<String> response = doEmptyRequest(HttpMethod.PUT, API_SUFFIX);
+        FOKLogger.info(getClass().getName(), "Response was:\n" + response);
+
+        assertErrorResponse(405, "ApiServlet", null, null, "HTTP method PUT is not supported by this URL", "/" + API_SUFFIX, response);
     }
 
     @Test
