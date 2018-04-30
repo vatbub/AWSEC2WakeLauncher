@@ -28,6 +28,10 @@ import com.github.vatbub.common.core.logging.FOKLogger;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Mocks the instance manager class by imitating the instance lifecycle. Used for internal unit tests only.
+ * Not intended for external use.
+ */
 public class MockAwsInstanceManager extends AwsInstanceManager {
     private final Map<String, InstanceState> mockInstanceStates = new HashMap<>();
     private final Map<String, InstanceLifecycleThread> instanceTransitions = new HashMap<>();

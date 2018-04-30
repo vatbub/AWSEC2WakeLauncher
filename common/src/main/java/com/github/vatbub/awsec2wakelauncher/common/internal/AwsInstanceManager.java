@@ -28,18 +28,40 @@ import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.ec2.model.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This class manages the connection to AWS EC2 and performs the actual AWS api calls.
+ */
 public class AwsInstanceManager {
     private AmazonEC2 ec2Client;
 
+    /**
+     * Instantiates a new instance manager with the specified credentials
+     *
+     * @param region         The region to connect to. Use the region ids mentioned in the {@code Region} column of <a href="https://docs.aws.amazon.com/general/latest/gr/rande.html#ec2_region">this</a> table.
+     * @param awsAccessKeyId The id of the access key to use to connect to EC2. Create this in the IAM.
+     * @param awsSecretKey   The secret of the access key to use to connect to EC2. Create this in the IAM.
+     */
     public AwsInstanceManager(String region, String awsAccessKeyId, String awsSecretKey) {
         this(region, awsAccessKeyId, awsSecretKey, null);
     }
 
-    public AwsInstanceManager(String region, String awsAccessKeyId, String awsSecretKey, AwsClientBuilder.EndpointConfiguration endpointConfiguration) {
+    /**
+     * Instantiates a new instance manager with the specified credentials
+     *
+     * @param endpointConfiguration The endpoint configuration to use.
+     * @param awsAccessKeyId        The id of the access key to use to connect to EC2. Create this in the IAM.
+     * @param awsSecretKey          The secret of the access key to use to connect to EC2. Create this in the IAM.
+     */
+    public AwsInstanceManager(String awsAccessKeyId, String awsSecretKey, @NotNull AwsClientBuilder.EndpointConfiguration endpointConfiguration) {
+        this(null, awsAccessKeyId, awsSecretKey, endpointConfiguration);
+    }
+
+    private AwsInstanceManager(String region, String awsAccessKeyId, String awsSecretKey, AwsClientBuilder.EndpointConfiguration endpointConfiguration) {
         AmazonEC2ClientBuilder clientBuilder = AmazonEC2Client.builder().withCredentials(new AWSCredentialsProvider() {
             @Override
             public AWSCredentials getCredentials() {
@@ -70,14 +92,30 @@ public class AwsInstanceManager {
         setEc2Client(clientBuilder.build());
     }
 
+    /**
+     * Returns the underlying AWS EC2 client used to perform api calls.
+     *
+     * @return The underlying AWS EC2 client used to perform api calls.
+     */
     public AmazonEC2 getEc2Client() {
         return ec2Client;
     }
 
+    /**
+     * Sets the underlying AWS EC2 client used to perform api calls. You should not need to use this.
+     *
+     * @param ec2Client The underlying AWS EC2 client to be used to perform api calls.
+     */
     public void setEc2Client(AmazonEC2 ec2Client) {
         this.ec2Client = ec2Client;
     }
 
+    /**
+     * Returns the state of the specified instance
+     *
+     * @param instanceId The id of the instance to get the state for
+     * @return The state of the specified instance
+     */
     public InstanceState getInstanceState(String instanceId) {
         DescribeInstancesRequest describeInstancesRequest = new DescribeInstancesRequest();
         List<String> instanceIds = new ArrayList<>(1);
@@ -88,17 +126,15 @@ public class AwsInstanceManager {
         return instance.getState();
     }
 
+    /**
+     * Starts the specified instance
+     *
+     * @param instanceId The instance to start
+     */
     public void startInstance(String instanceId) {
         List<String> instanceIds = new ArrayList<>();
         instanceIds.add(instanceId);
         StartInstancesRequest startInstancesRequest = new StartInstancesRequest(instanceIds);
         getEc2Client().startInstances(startInstancesRequest);
-    }
-
-    public void stopInstance(String instanceId) {
-        List<String> instanceIds = new ArrayList<>();
-        instanceIds.add(instanceId);
-        StopInstancesRequest stopInstancesRequest = new StopInstancesRequest(instanceIds);
-        getEc2Client().stopInstances(stopInstancesRequest);
     }
 }

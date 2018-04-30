@@ -66,7 +66,7 @@ public class AwsInstanceManagerTest {
 
     @Before
     public void setAwsInstanceManagerUp() {
-        awsInstanceManager = new AwsInstanceManager(AWS_REGION, AWS_KEY, AWS_SECRET, new AwsClientBuilder.EndpointConfiguration("http://localhost:" + AWS_PORT, AWS_REGION));
+        awsInstanceManager = new AwsInstanceManager(AWS_KEY, AWS_SECRET, new AwsClientBuilder.EndpointConfiguration("http://localhost:" + AWS_PORT, AWS_REGION));
 
         // create the instance
         RunInstancesRequest runInstancesRequest =
@@ -100,15 +100,5 @@ public class AwsInstanceManagerTest {
     public void startInstanceTest() {
         awsInstanceManager.startInstance(INSTANCE_ID);
         Assert.assertThat(awsInstanceManager.getInstanceState(INSTANCE_ID).getCode(), Matchers.anyOf(Matchers.equalTo(0), Matchers.equalTo(16)));
-    }
-
-    @Test
-    public void stopInstanceTest() {
-        awsInstanceManager.startInstance(INSTANCE_ID);
-        while (awsInstanceManager.getInstanceState(INSTANCE_ID).getCode() != 16)
-            System.out.println("Waiting for instance to boot...");
-
-        awsInstanceManager.stopInstance(INSTANCE_ID);
-        Assert.assertThat(awsInstanceManager.getInstanceState(INSTANCE_ID).getCode(), Matchers.anyOf(Matchers.equalTo(64), Matchers.equalTo(80)));
     }
 }
