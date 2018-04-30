@@ -60,8 +60,6 @@ public abstract class WebappTest {
 
         FileUtils.copyDirectory(sourcePath.toFile(), destinationPath.toFile());
 
-        Path relativePath = webappsPath.relativize(destinationPath);
-
         /* There needs to be a symlink to the current dir named 'webapps' */
         tomcat.addWebapp(contextPath, webXmlPath);
         tomcat.init();

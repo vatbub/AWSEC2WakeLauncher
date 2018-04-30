@@ -61,6 +61,11 @@
     </servlet-mapping>
 
     <error-page>
+        <error-code>404</error-code>
+        <location>/ErrorHandling</location>
+    </error-page>
+
+    <error-page>
         <error-code>405</error-code>
         <location>/ErrorHandling</location>
     </error-page>
