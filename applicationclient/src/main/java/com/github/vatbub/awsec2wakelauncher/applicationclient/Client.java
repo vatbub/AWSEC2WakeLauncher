@@ -79,9 +79,7 @@ public class Client {
     public void launchAndWaitForInstance(String instanceId) throws Exception {
         final Exception[] e = new Exception[1];
 
-        Thread thread = launchInstance(instanceId, (exception) -> {
-            e[0] = exception;
-        });
+        Thread thread = launchInstance(instanceId, (exception) -> e[0] = exception);
 
         thread.join();
 
@@ -105,17 +103,22 @@ public class Client {
                 String json = gson.toJson(wakeRequest, WakeRequest.class);
                 System.out.print(json);
 
-                boolean ready = false;
+                WakeResponse wakeResponse = null;
+                int retries = 0;
+                long lastPollTime = System.currentTimeMillis();
 
-                while (!ready) {
-                    HttpRequest<String> httpRequest = HttpRequestBuilder.createPost(new URL(getServerBaseUrl(), getApiSuffix()).toURI(), String.class)
-                            .responseDeserializer(ResponseDeserializer.ignorableDeserializer()).build();
-                    String responseBody = httpRequest.executeWithBody(json).get();
+                do {
+                    if (System.currentTimeMillis() - lastPollTime >= Math.pow(2, retries) * 100) {
+                        retries = retries + 1;
+                        lastPollTime = System.currentTimeMillis();
+                        HttpRequest<String> httpRequest = HttpRequestBuilder.createPost(new URL(getServerBaseUrl(), getApiSuffix()).toURI(), String.class)
+                                .responseDeserializer(ResponseDeserializer.ignorableDeserializer()).build();
+                        String responseBody = httpRequest.executeWithBody(json).get();
+                        System.out.println(responseBody);
 
-                    WakeResponse wakeResponse = gson.fromJson(responseBody, WakeResponse.class);
-                    if (wakeResponse.getPreviousInstanceState() == 16)
-                        ready = true;
-                }
+                        wakeResponse = gson.fromJson(responseBody, WakeResponse.class);
+                    }
+                } while (wakeResponse == null || wakeResponse.getPreviousInstanceState() != 16);
 
             } catch (Exception e) {
                 exception = e;

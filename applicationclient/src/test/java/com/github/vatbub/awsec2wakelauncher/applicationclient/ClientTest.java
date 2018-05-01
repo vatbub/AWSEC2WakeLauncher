@@ -33,7 +33,6 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ClientTest extends TomcatTest {
     private static final int TOMCAT_PORT = 9999;
@@ -80,17 +79,13 @@ public class ClientTest extends TomcatTest {
     public void illegalServerURLAsyncTest() throws Exception {
         Client client = new Client(new URL("http", "someIllegalHost", TOMCAT_PORT, ""), apiSuffix);
 
-        AtomicBoolean ready = new AtomicBoolean(false);
         final Exception[] e = new Exception[1];
 
-        client.launchInstance("i-45678765", (exception) -> {
+        Thread thread = client.launchInstance("i-45678765", (exception) -> {
             e[0] = exception;
-            ready.set(true);
         });
 
-        while (!ready.get()) {
-            System.out.print("");
-        }
+        thread.join();
 
         Assert.assertNotNull(e[0]);
     }
