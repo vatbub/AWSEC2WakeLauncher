@@ -39,7 +39,7 @@ public class MockAwsInstanceManager extends AwsInstanceManager {
     private int durationOfInstanceTransitionsInSeconds;
 
     public MockAwsInstanceManager(int durationOfInstanceTransitionsInSeconds) {
-        super("eu-central-1", null, null);
+        super("eu-central-1", null, (String) null);
         setDurationOfInstanceTransitionsInSeconds(durationOfInstanceTransitionsInSeconds);
     }
 
@@ -63,17 +63,6 @@ public class MockAwsInstanceManager extends AwsInstanceManager {
         instanceTransitions.put(instanceId, startInstanceThread);
         waitForInstanceStateUpdate = true;
         startInstanceThread.start();
-    }
-
-    @Override
-    public void stopInstance(String instanceId) {
-        if (instanceTransitions.containsKey(instanceId))
-            instanceTransitions.get(instanceId).finishTransition();
-
-        StopInstanceThread stopInstanceThread = new StopInstanceThread(instanceId);
-        instanceTransitions.put(instanceId, stopInstanceThread);
-        waitForInstanceStateUpdate = true;
-        stopInstanceThread.start();
     }
 
     public int getDurationOfInstanceTransitionsInSeconds() {
@@ -162,24 +151,4 @@ public class MockAwsInstanceManager extends AwsInstanceManager {
         }
     }
 
-    private class StopInstanceThread extends InstanceLifecycleThread {
-
-        public StopInstanceThread(String instanceId) {
-            super(instanceId);
-        }
-
-        @Override
-        public void run() {
-            updateInstanceState(64);
-            waitForInstanceStateUpdate = false;
-
-            while (!isFinish() && getStartTime() + getDurationOfInstanceTransitionsInSeconds() >= getUnixTime()) {
-                FOKLogger.fine(getClass().getName(), "Waiting for mock instance to stop...");
-            }
-
-            updateInstanceState(80);
-
-            super.run();
-        }
-    }
 }
