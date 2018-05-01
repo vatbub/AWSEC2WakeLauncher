@@ -19,6 +19,21 @@
   --%>
 <html>
 <body>
-<h2>Hello World!</h2>
+<h1 id="itworks">It works!</h1><br>
+<h1 id="awsec2wakelauncher">AWS EC2 Wake Launcher</h1>
+
+<p>Did you ever find yourself in this situation:</p>
+
+<ul>
+    <li>You have a server that needs to run on AWS EC2.</li>
+
+    <li>The server does not have that much traffic, but...</li>
+
+    <li>...running the server costs a heck of money.</li>
+</ul>
+
+<p>Here is where this project comes into play. WakeLauncher is a tomcat webapp that can put your EC2 instance to sleep
+    and wake it up once you need it again.</p>
+<p>Read more on <a href="https://github.com/vatbub/AWSEC2WakeLauncher">GitHub</a>.</p>
 </body>
 </html>
