@@ -59,6 +59,8 @@ public class MockAwsInstanceManager extends AwsInstanceManager {
 
     @Override
     public String getInstanceIp(String instanceId) {
+        if (getInstanceState(instanceId).getCode() != 16)
+            return null;
         try {
             return InetAddress.getLocalHost().getHostAddress();
         } catch (UnknownHostException e) {
@@ -69,6 +71,8 @@ public class MockAwsInstanceManager extends AwsInstanceManager {
 
     @Override
     public String getInstanceDns(String instanceId) {
+        if (getInstanceState(instanceId).getCode() != 16)
+            return "";
         try {
             return InetAddress.getLocalHost().getHostName();
         } catch (UnknownHostException e) {
