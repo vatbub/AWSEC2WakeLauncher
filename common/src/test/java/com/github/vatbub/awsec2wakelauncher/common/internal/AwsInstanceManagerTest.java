@@ -34,6 +34,7 @@ import org.junit.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class AwsInstanceManagerTest {
     private final static int AWS_PORT = 8000;
@@ -60,7 +61,7 @@ public class AwsInstanceManagerTest {
         }).start();
 
         int installExitCode = installProcess.waitFor();
-        if (installExitCode!=0)
+        if (installExitCode != 0)
             Assert.fail("Mock server installation process exited with exit code " + installExitCode + ". Do you have pip installed and on the path? On Windows, you might need administrative privileges to install moto for the first time.");
         serverProcess = Runtime.getRuntime().exec("moto_server ec2 -p" + AWS_PORT);
         new Thread(() -> {
@@ -116,5 +117,19 @@ public class AwsInstanceManagerTest {
     public void startInstanceTest() {
         awsInstanceManager.startInstance(INSTANCE_ID);
         Assert.assertThat(awsInstanceManager.getInstanceState(INSTANCE_ID).getCode(), Matchers.anyOf(Matchers.equalTo(0), Matchers.equalTo(16)));
+    }
+
+    @Test
+    public void getIpTest() {
+        awsInstanceManager.startInstance(INSTANCE_ID);
+        Pattern ipPattern = Pattern.compile("\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b");
+        Assert.assertThat(awsInstanceManager.getInstanceIp(INSTANCE_ID), Matchers.matchesPattern(ipPattern));
+    }
+
+    @Test
+    public void getDnsTest() {
+        awsInstanceManager.startInstance(INSTANCE_ID);
+        Pattern ipPattern = Pattern.compile("ec2-(?:\\d{1,3}-){3}\\d{1,3}\\b\\." + AWS_REGION + "\\.compute\\.amazonaws\\.com");
+        Assert.assertThat(awsInstanceManager.getInstanceDns(INSTANCE_ID), Matchers.matchesPattern(ipPattern));
     }
 }

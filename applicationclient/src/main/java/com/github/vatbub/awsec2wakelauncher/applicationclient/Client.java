@@ -30,6 +30,7 @@ import com.jsunsoft.http.HttpRequestBuilder;
 import com.jsunsoft.http.ResponseDeserializer;
 
 import java.net.URL;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Use this class to launch AWS EC2 instances remotely.
@@ -73,18 +74,25 @@ public class Client {
      * Launches the AWS EC2 instance with the specified id and waits until it launched.
      *
      * @param instanceId The id of the instance to launch. AWS refers to that as the {@code instance-id}
+     * @return Information about the instance's ip address
      * @throws Exception In case anything goes wrong
      * @see #launchInstance(String, OnInstanceReadyRunnable)
      */
-    public void launchAndWaitForInstance(String instanceId) throws Exception {
+    public IpInfo launchAndWaitForInstance(String instanceId) throws Exception {
         final Exception[] e = new Exception[1];
+        AtomicReference<IpInfo> ipInfo2 = new AtomicReference<>();
 
-        Thread thread = launchInstance(instanceId, (exception) -> e[0] = exception);
+        Thread thread = launchInstance(instanceId, (exception, ipInfo) -> {
+            e[0] = exception;
+            ipInfo2.set(ipInfo);
+        });
 
         thread.join();
 
         if (e[0] != null)
             throw e[0];
+
+        return ipInfo2.get();
     }
 
     /**
@@ -98,10 +106,10 @@ public class Client {
     public Thread launchInstance(String instanceId, OnInstanceReadyRunnable onInstanceReady) {
         Thread thread = new Thread(() -> {
             Exception exception = null;
+            IpInfo ipInfo = null;
             try {
                 WakeRequest wakeRequest = new WakeRequest(instanceId);
                 String json = gson.toJson(wakeRequest, WakeRequest.class);
-                System.out.print(json);
 
                 WakeResponse wakeResponse = null;
                 int retries = 0;
@@ -117,13 +125,14 @@ public class Client {
                         System.out.println(responseBody);
 
                         wakeResponse = gson.fromJson(responseBody, WakeResponse.class);
+                        ipInfo = new IpInfo(wakeResponse.getInstanceIp(), wakeResponse.getInstanceDns());
                     }
                 } while (wakeResponse == null || wakeResponse.getPreviousInstanceState() != 16);
 
             } catch (Exception e) {
                 exception = e;
             } finally {
-                onInstanceReady.run(exception);
+                onInstanceReady.run(exception, ipInfo);
             }
         });
         thread.start();
@@ -147,6 +156,42 @@ public class Client {
     }
 
     public interface OnInstanceReadyRunnable {
-        void run(Exception exception);
+        /**
+         * Called when the instance launch is complete
+         *
+         * @param exception The exception that occurred during the launch or {@code null} if the launch went smoothly
+         * @param ipInfo    Information about the instance's ip or {@code null} if the instance failed to launch
+         */
+        void run(Exception exception, IpInfo ipInfo);
+    }
+
+    public static class IpInfo {
+        private String instanceIp;
+        private String instanceDns;
+
+        public IpInfo() {
+            this(null, null);
+        }
+
+        public IpInfo(String instanceIp, String instanceDns) {
+            setInstanceIp(instanceIp);
+            setInstanceDns(instanceDns);
+        }
+
+        public String getInstanceIp() {
+            return instanceIp;
+        }
+
+        public void setInstanceIp(String instanceIp) {
+            this.instanceIp = instanceIp;
+        }
+
+        public String getInstanceDns() {
+            return instanceDns;
+        }
+
+        public void setInstanceDns(String instanceDns) {
+            this.instanceDns = instanceDns;
+        }
     }
 }

@@ -86,6 +86,7 @@ public class ApiTest extends TomcatTest {
 
         while (true) {
             String responseBody = doRequest(json);
+            FOKLogger.info(getClass().getName(), "Received response from server:\n" + responseBody);
             WakeResponse wakeResponse = gson.fromJson(responseBody, WakeResponse.class);
 
             switch (loopCounter) {

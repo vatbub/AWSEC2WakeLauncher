@@ -119,6 +119,8 @@ public class Api extends HttpServlet {
                 InstanceState instanceState = getAwsInstanceManager().getInstanceState(wakeRequest.getInstanceId());
 
                 wakeResponse.setPreviousInstanceState(instanceState.getCode());
+                wakeResponse.setInstanceDns(awsInstanceManager.getInstanceDns(wakeRequest.getInstanceId()));
+                wakeResponse.setInstanceIp(awsInstanceManager.getInstanceIp(wakeRequest.getInstanceId()));
 
                 if (instanceState.getCode() == 80)
                     // only start the instance when it's stopped (cannot start pending, running, stopping or terminated instances.

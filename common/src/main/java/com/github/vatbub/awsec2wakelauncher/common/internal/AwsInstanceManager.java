@@ -117,13 +117,15 @@ public class AwsInstanceManager {
      * @return The state of the specified instance
      */
     public InstanceState getInstanceState(String instanceId) {
-        DescribeInstancesRequest describeInstancesRequest = new DescribeInstancesRequest();
-        List<String> instanceIds = new ArrayList<>(1);
-        instanceIds.add(instanceId);
-        describeInstancesRequest.setInstanceIds(instanceIds);
-        DescribeInstancesResult describeInstancesResult = getEc2Client().describeInstances(describeInstancesRequest);
-        Instance instance = describeInstancesResult.getReservations().get(0).getInstances().get(0);
-        return instance.getState();
+        return getInstanceDescription(instanceId).getState();
+    }
+
+    public String getInstanceIp(String instanceId) {
+        return getInstanceDescription(instanceId).getPublicIpAddress();
+    }
+
+    public String getInstanceDns(String instanceId) {
+        return getInstanceDescription(instanceId).getPublicDnsName();
     }
 
     /**
@@ -136,5 +138,14 @@ public class AwsInstanceManager {
         instanceIds.add(instanceId);
         StartInstancesRequest startInstancesRequest = new StartInstancesRequest(instanceIds);
         getEc2Client().startInstances(startInstancesRequest);
+    }
+
+    private Instance getInstanceDescription(String instanceId) {
+        DescribeInstancesRequest describeInstancesRequest = new DescribeInstancesRequest();
+        List<String> instanceIds = new ArrayList<>(1);
+        instanceIds.add(instanceId);
+        describeInstancesRequest.setInstanceIds(instanceIds);
+        DescribeInstancesResult describeInstancesResult = getEc2Client().describeInstances(describeInstancesRequest);
+        return describeInstancesResult.getReservations().get(0).getInstances().get(0);
     }
 }

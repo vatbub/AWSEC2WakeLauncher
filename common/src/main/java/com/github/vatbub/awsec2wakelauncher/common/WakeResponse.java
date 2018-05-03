@@ -28,6 +28,8 @@ public class WakeResponse extends ServerInteraction {
 
     private int previousInstanceState;
     private int newInstanceState;
+    private String instanceIp;
+    private String instanceDns;
 
     public WakeResponse(String instanceId) {
         super(instanceId);
@@ -50,5 +52,21 @@ public class WakeResponse extends ServerInteraction {
 
     public void setNewInstanceState(int newInstanceState) {
         this.newInstanceState = newInstanceState;
+    }
+
+    public String getInstanceIp() {
+        return instanceIp;
+    }
+
+    public void setInstanceIp(String instanceIp) {
+        this.instanceIp = instanceIp;
+    }
+
+    public String getInstanceDns() {
+        return instanceDns;
+    }
+
+    public void setInstanceDns(String instanceDns) {
+        this.instanceDns = instanceDns;
     }
 }

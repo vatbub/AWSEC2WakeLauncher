@@ -25,8 +25,11 @@ import com.amazonaws.services.ec2.model.InstanceState;
 import com.github.vatbub.awsec2wakelauncher.common.internal.AwsInstanceManager;
 import com.github.vatbub.common.core.logging.FOKLogger;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 
 /**
  * Mocks the instance manager class by imitating the instance lifecycle. Used for internal unit tests only.
@@ -52,6 +55,26 @@ public class MockAwsInstanceManager extends AwsInstanceManager {
             return getMockInstanceStates().get(instanceId);
 
         return new InstanceState().withCode(80);
+    }
+
+    @Override
+    public String getInstanceIp(String instanceId) {
+        try {
+            return InetAddress.getLocalHost().getHostAddress();
+        } catch (UnknownHostException e) {
+            FOKLogger.log(getClass().getName(), Level.SEVERE, FOKLogger.DEFAULT_ERROR_TEXT, e);
+            return null;
+        }
+    }
+
+    @Override
+    public String getInstanceDns(String instanceId) {
+        try {
+            return InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            FOKLogger.log(getClass().getName(), Level.SEVERE, FOKLogger.DEFAULT_ERROR_TEXT, e);
+            return null;
+        }
     }
 
     @Override
