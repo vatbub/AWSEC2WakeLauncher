@@ -9,9 +9,9 @@ package com.github.vatbub.awsec2wakelauncher.server.logic;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -97,6 +97,13 @@ public class ApiTest extends TomcatTest {
                 default:
                     Assert.assertThat(wakeResponse.getPreviousInstanceState(), Matchers.anyOf(Matchers.equalTo(0), Matchers.equalTo(16)));
                     Assert.assertThat(wakeResponse.getNewInstanceState(), Matchers.anyOf(Matchers.equalTo(0), Matchers.equalTo(16)));
+            }
+            if (wakeResponse.getNewInstanceState() == 16) {
+                Assert.assertNotNull(wakeResponse.getInstanceDns());
+                Assert.assertNotNull(wakeResponse.getInstanceIp());
+            } else {
+                Assert.assertNull(wakeResponse.getInstanceDns());
+                Assert.assertNull(wakeResponse.getInstanceIp());
             }
 
             loopCounter++;
