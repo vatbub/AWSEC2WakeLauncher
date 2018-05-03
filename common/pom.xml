@@ -21,30 +21,4 @@
             <version>8.5.30</version>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>1.6.0</version>
-                <executions>
-                    <execution>
-                        <id>installMotoServer</id>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <phase>validate</phase>
-                        <configuration>
-                            <executable>pip</executable>
-                            <arguments>
-                                <argument>install</argument>
-                                <argument>moto[server]</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
 </project>

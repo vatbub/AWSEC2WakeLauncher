@@ -9,9 +9,9 @@ package com.github.vatbub.awsec2wakelauncher.common.internal;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,6 +26,7 @@ import com.amazonaws.services.ec2.model.RunInstancesRequest;
 import com.amazonaws.services.ec2.model.RunInstancesResult;
 import com.amazonaws.services.ec2.model.StopInstancesRequest;
 import com.amazonaws.services.ec2.model.TerminateInstancesRequest;
+import com.github.vatbub.common.core.logging.FOKLogger;
 import org.apache.commons.io.IOUtils;
 import org.hamcrest.Matchers;
 import org.junit.*;
@@ -45,7 +46,22 @@ public class AwsInstanceManagerTest {
     private AwsInstanceManager awsInstanceManager;
 
     @BeforeClass
-    public static void startServer() throws IOException {
+    public static void startServer() throws IOException, InterruptedException {
+        FOKLogger.info(AwsInstanceManagerTest.class.getName(), "Installing the moto aws-mock server... (This will only take long for the first time)");
+        Process installProcess = Runtime.getRuntime().exec("pip install moto[server]");
+        FOKLogger.info(AwsInstanceManagerTest.class.getName(), "Mock-Aws-server successfully installed. Use 'pip uninstall moto[server]' to uninstall the server.");
+
+        new Thread(() -> {
+            try {
+                IOUtils.copy(installProcess.getInputStream(), System.out);
+            } catch (IOException e) {
+                streamCopyException = e;
+            }
+        }).start();
+
+        int installExitCode = installProcess.waitFor();
+        if (installExitCode!=0)
+            Assert.fail("Mock server installation process exited with exit code " + installExitCode + ". Do you have pip installed and on the path? On Windows, you might need administrative privileges to install moto for the first time.");
         serverProcess = Runtime.getRuntime().exec("moto_server ec2 -p" + AWS_PORT);
         new Thread(() -> {
             try {
