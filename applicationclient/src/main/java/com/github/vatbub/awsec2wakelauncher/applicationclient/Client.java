@@ -122,7 +122,6 @@ public class Client {
                         HttpRequest<String> httpRequest = HttpRequestBuilder.createPost(new URL(getServerBaseUrl(), getApiSuffix()).toURI(), String.class)
                                 .responseDeserializer(ResponseDeserializer.ignorableDeserializer()).build();
                         String responseBody = httpRequest.executeWithBody(json).get();
-                        System.out.println(responseBody);
 
                         wakeResponse = gson.fromJson(responseBody, WakeResponse.class);
                         ipInfo = new IpInfo(wakeResponse.getInstanceIp(), wakeResponse.getInstanceDns());
