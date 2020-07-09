@@ -123,7 +123,7 @@
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-ec2</artifactId>
-            <version>1.11.780</version>
+            <version>1.11.819</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
